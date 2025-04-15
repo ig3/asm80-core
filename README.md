@@ -1,4 +1,68 @@
-# asm80-core
+# @ig3/asm80-core
+This repository contains an assembler supporting multiple CPU architectures
+as an ES6 module and with a command line interface.
+
+## Installation
+
+```
+$ npm install @ig3/asm80-core
+```
+
+## Usage
+
+```
+import {asm,lst,ihex} from '@ig3/asm80-core';
+import {readFileSync, writeFileSync} from 'node:fs';
+import * as fs from 'node:fs/promises';
+
+const result = await asm.compile(
+  readFileSync('program.a09'),
+  fs,
+  {assembler: 'M6809'}
+);
+writeFileSync(
+  'program.lst',
+  lst(result, true, false)
+);
+writeFileSync(
+  'program.hex',
+  ihex(result)
+);
+```
+
+See asm80-core.js and the tests for more complete examples.
+
+### CLI
+
+```
+$ asm80-core file
+```
+
+[This](https://github.com/ig3/asm80-core)
+is a fork of
+[asm80/asm80-core](https://github.com/asm80/asm80-core)
+which appears to be an update to
+[asm80/asm80-node](https://github.com/asm80/asm80-node).
+
+The former was updated as recently as Mar 2024 while the latter has not
+been updated since Aug 2020.
+
+The asm80/asm80-node assembler has support for the M6809 processor but with
+a bug affecting indirect addressing mode, reported in
+[Issue#17 - M6809 JSR [1,x] is assembled to AD 11 but should be AD 98 01](https://github.com/asm80/asm80-node/issues/17).
+
+The asm80/asm80-core assembler does not have support for the M6809
+processor or a command line interface. Also, significant parts of it are
+minified with the unminified code not in the repository. This makes it
+difficult to investigate and fix bugs.
+
+So I created this fork to add support for the M6809 processor and to add a
+command line interface. In passing, I have somewhat de-minified the parts
+of the code relevant to the bug. In particular, the parseOpcode function in
+cpu/m6809.js. It's still a mess and not well tested, but better than it
+was.
+
+
 Core assembler as ES6 module
 
 Currently I am converting codebase from 2010's form to modern. Please be patient. [Support my effort to rewrite and open the source code](https://donate.stripe.com/7sI8yU7jCbzp4wMeUX)

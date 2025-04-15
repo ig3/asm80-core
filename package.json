@@ -1,5 +1,5 @@
 {
-  "name": "@asm80/core",
+  "name": "@ig3/asm80-core",
   "version": "1.0.0",
   "description": "Core ASM80 compiler / assembler",
   "main": "asm.js",
@@ -18,14 +18,21 @@
     "ASM",
     "Assembler",
     "Z80",
-    "6502"
+    "6502",
+    "I8080",
+    "M6800",
+    "M6809"
   ],
-  "author": "Martin Maly <maly@maly.cz>",
+  "author": "Ian Goodacre",
+  "contributors": [
+    "Ian Goodacre",
+    "Martin Maly <maly@maly.cz>"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/asm80/asm80-core/issues"
+    "url": "https://github.com/ig3/asm80-core/issues"
   },
-  "homepage": "https://github.com/asm80/asm80-core#readme",
+  "homepage": "https://github.com/ig3/asm80-core#readme",
   "devDependencies": {
     "c8": "^8.0.0",
     "qunit": "^2.19.4"
