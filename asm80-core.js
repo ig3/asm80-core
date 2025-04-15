@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import {asm} from "./asm.js";
+import {lst} from "./listing.js";
+import {ihex} from "./utils/ihex.js";
 
 import * as fs from 'node:fs/promises';
-import {readFileSync} from 'node:fs';
+import {readFileSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 
-console.log('args: ', process.argv);
 const srcPath = process.argv[2];
 
 const src = readFileSync(srcPath,'utf-8');
@@ -42,12 +43,19 @@ function getType(srcPath) {
 }
 
 const assembler = getType(srcPath);
-console.log('assembler: ', assembler);
-console.log('src: ', src);
 
 try {
-  const x = await asm.compile(src,fs, {assembler:assembler});
-  console.log('x: ', JSON.stringify(x, null, 2));
+  const result = await asm.compile(src,fs, {assembler:assembler});
+  let listing = lst(result, true, false);
+  writeFileSync(
+    path.format({...path.parse(srcPath), base: '', ext: '.lst'}),
+    listing
+  );
+  let hex = ihex(result);
+  writeFileSync(
+    path.format({...path.parse(srcPath), base: '', ext: '.hex'}),
+    hex
+  );
 } catch (e) {
   console.log('failed with: ', e);
 }
