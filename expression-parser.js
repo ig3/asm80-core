@@ -225,7 +225,7 @@ export function Token(type_, index_, prio_, number_) {
           } else if (item.index_ in this.functions) {
             nstack.push(this.functions[item.index_]);
           } else {
-            throw {msg: "undefined variable: " + item.index_};
+            throw new Error("undefined variable: " + item.index_);
           }
         } else if (type_ === TOP1) {
           n1 = nstack.pop();
@@ -302,7 +302,7 @@ export function Token(type_, index_, prio_, number_) {
             nstack.push(this.functions[item.index_]);
             xref.push(item.index_);
           } else {
-            throw {msg: "undefined variable: " + item.index_};
+            throw new Error("undefined variable: " + item.index_);
           }
         } else if (type_ === TOP1) {
           n1 = nstack.pop();

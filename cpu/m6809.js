@@ -3,6 +3,7 @@ export const M6809 = {
   cpu: "m6809",
   ext: "a09",
   set: {
+    // [Inherent, Direct, Indexed, Extended, Immediate-I8, Immediate-M8, Immediate-M16, Relative]
     NEG: [-1, 0, 96, 112, -1, -1, -1, -1],
     COM: [-1, 3, 99, 115, -1, -1, -1, -1],
     LSR: [-1, 4, 100, 116, -1, -1, -1, -1],
@@ -138,94 +139,106 @@ export const M6809 = {
     ANDCC: [-1, -1, -1, -1, -1, 28, -1, -1]
   },
   parseOpcode: function(s,vars,Parser) {
-    let r = s;
-    let n = vars;
-    const e = M6809;
-    r._dp || (r._dp = 0);
-    var t, s, a, u, l, o = function(e) {
+    s._dp || (s._dp = 0);
+    var t, param1, a, u, l;
+    const opcodes = M6809.set[s.opcode];
+    if (s.lens = [], "EXG" == s.opcode && (s.lens[0] = 30), "TFR" == s.opcode && (s.lens[0] = 31), "EXG" == s.opcode || "TFR" == s.opcode) {
+      if (s.bytes = 2, 2 != s.params.length) throw s.opcode + " needs exactly 2 registers  at line " + s.numline;
+      const getRegisterIndex = function(e) {
         var r = ["D", "X", "Y", "U", "S", "PC", "", "", "A", "B", "CC", "DP"].indexOf(e.toUpperCase());
         if (r < 0) throw "Not recognized register name";
         return r
-      },
-      i = function(e) {
-        if ("D" == e.toUpperCase()) return 6;
-        var r = ["CC", "A", "B", "DP", "X", "Y", "U", "PC"].indexOf(e.toUpperCase());
-        if (r < 0) throw "Not recognized register name";
-        return 1 << r
-      },
-      f = function(e) {
-        if ("D" == e.toUpperCase()) return 6;
-        var r = ["CC", "A", "B", "DP", "X", "Y", "S", "PC"].indexOf(e.toUpperCase());
-        if (r < 0) throw "Not recognized register name";
-        return 1 << r
-      },
-      B = e.set[r.opcode],
-      p = 0,
-      C = -1,
-      L = 0,
-      S = null;
-    if (r.lens = [], "EXG" == r.opcode && (r.lens[0] = 30), "TFR" == r.opcode && (r.lens[0] = 31), "EXG" == r.opcode || "TFR" == r.opcode) {
-      if (r.bytes = 2, 2 != r.params.length) throw r.opcode + " needs exactly 2 registers  at line " + r.numline;
-      return r.lens[1] = (o(r.params[0]) << 4) + o(r.params[1]), r
+      };
+      return s.lens[1] = (getRegisterIndex(s.params[0]) << 4) + getRegisterIndex(s.params[1]), s
     }
-    if ("PSHS" == r.opcode) {
-      for (r.lens[0] = 52, r.bytes = 2, r.lens[1] = 0, l = 0; l < r.params.length; l++) r.lens[1] |= i(r.params[l]);
-      return r
+    const getPshPulRegisterIndex = function(e) {
+      if ("D" == e.toUpperCase()) return 6;
+      var r = ["CC", "A", "B", "DP", "X", "Y", "U", "PC"].indexOf(e.toUpperCase());
+      if (r < 0) throw "Not recognized register name";
+      return 1 << r
+    };
+    if ("PSHS" == s.opcode) {
+      for (s.lens[0] = 52, s.bytes = 2, s.lens[1] = 0, l = 0; l < s.params.length; l++) s.lens[1] |= getPshPulRegisterIndex(s.params[l]);
+      return s
     }
-    if ("PULS" == r.opcode) {
-      for (r.lens[0] = 53, r.bytes = 2, r.lens[1] = 0, l = 0; l < r.params.length; l++) r.lens[1] |= i(r.params[l]);
-      return r
+    if ("PULS" == s.opcode) {
+      for (s.lens[0] = 53, s.bytes = 2, s.lens[1] = 0, l = 0; l < s.params.length; l++) s.lens[1] |= getPshPulRegisterIndex(s.params[l]);
+      return s
     }
-    if ("PSHU" == r.opcode) {
-      for (r.lens[0] = 54, r.bytes = 2, r.lens[1] = 0, l = 0; l < r.params.length; l++) r.lens[1] |= f(r.params[l]);
-      return r
+    const getPshuPuluRegisterIndex = function(e) {
+      if ("D" == e.toUpperCase()) return 6;
+      var r = ["CC", "A", "B", "DP", "X", "Y", "S", "PC"].indexOf(e.toUpperCase());
+      if (r < 0) throw "Not recognized register name";
+      return 1 << r
+    };
+    if ("PSHU" == s.opcode) {
+      for (s.lens[0] = 54, s.bytes = 2, s.lens[1] = 0, l = 0; l < s.params.length; l++) s.lens[1] |= getPshuPuluRegisterIndex(s.params[l]);
+      return s
     }
-    if ("PULU" == r.opcode) {
-      for (r.lens[0] = 55, r.bytes = 2, r.lens[1] = 0, l = 0; l < r.params.length; l++) r.lens[1] |= f(r.params[l]);
-      return r
+    if ("PULU" == s.opcode) {
+      for (s.lens[0] = 55, s.bytes = 2, s.lens[1] = 0, l = 0; l < s.params.length; l++) s.lens[1] |= getPshuPuluRegisterIndex(s.params[l]);
+      return s
     }
-    if (B) {
-      if (B[0] >= 0) return B[0] > 255 ? (r.lens = [B[0] >> 8, 255 & B[0]], r.bytes = 2, r) : (r.lens = [B[0]], r.bytes = 1, r);
-      if (1 == r.params.length && "[" !== r.params[0][0]) {
-        if (r.bytes = 0, "#" == (s = r.params[0])[0] ? (L = 1, p = 5, B[5] < 0 && B[6] >= 0 && (p = 6)) : "<" == s[0] ? (L = 1, p = 1) : ">" == s[0] ? (L = 1, p = 3) : (B[1] >= 0 && (p = 1), B[3] >= 0 && (p = 3), B[4] >= 0 && (p = 4), B[7] >= 0 && (p = 7), function(e, r, n) {
-            if (n._dp < 0 || n._dp > 255) return !1;
+    if (opcodes) {
+      // Inherhent address mode
+      if (opcodes[0] >= 0) return opcodes[0] > 255 ? (s.lens = [opcodes[0] >> 8, 255 & opcodes[0]], s.bytes = 2, s) : (s.lens = [opcodes[0]], s.bytes = 1, s);
+      // 1 parameter, not starting with '['
+      if (1 == s.params.length && "[" !== s.params[0][0]) {
+        let opcodesIndex = 0;
+        let stripPrefix = false;
+        if (s.bytes = 0, "#" == (param1 = s.params[0])[0] ? (stripPrefix = true, opcodesIndex = 5, opcodes[5] < 0 && opcodes[6] >= 0 && (opcodesIndex = 6)) : "<" == param1[0] ? (stripPrefix = true, opcodesIndex = 1) : ">" == param1[0] ? (stripPrefix = true, opcodesIndex = 3) : (opcodes[1] >= 0 && (opcodesIndex = 1), opcodes[3] >= 0 && (opcodesIndex = 3), opcodes[4] >= 0 && (opcodesIndex = 4), opcodes[7] >= 0 && (opcodesIndex = 7), function(e, r, vars) {
+            if (vars._dp < 0 || vars._dp > 255) return !1;
             try {
-              if (null !== (t = Parser.evaluate(e, r)) && void 0 !== t && t >> 8 === n._dp) return !0
+              if (null !== (t = Parser.evaluate(e, r)) && void 0 !== t && t >> 8 === vars._dp) return !0
             } catch (e) {
               return !1
             }
             return !1
-          }(s, n, r) && B[1] >= 0 && (p = 1)), -1 == B[p]) throw "Bad addressing mode at line " + r.numline;
-        if (C = B[p], 4 != p && 7 != p && (S = L ? function(e) {
-            return Parser.evaluate(s.substr(1), e)
+          }(param1, vars, s) && opcodes[1] >= 0 && (opcodesIndex = 1)), -1 == opcodes[opcodesIndex]) throw "Bad addressing mode at line " + s.numline;
+        let opcode = opcodes[opcodesIndex];
+
+        let evalFunction = null;
+
+        if (4 != opcodesIndex && 7 != opcodesIndex && (evalFunction = stripPrefix ? function(e) {
+            return Parser.evaluate(param1.substr(1), e)
           } : function(e) {
-            return Parser.evaluate(s, e)
-          }), 1 === p && 0 != r._dp) {
-          var A = 256 * r._dp;
-          S = L ? function(e) {
-            return Parser.evaluate(s.substr(1), e) - A
+            return Parser.evaluate(param1, e)
+          }), 1 === opcodesIndex && 0 != s._dp) {
+          var A = 256 * s._dp;
+          evalFunction = stripPrefix ? function(e) {
+            return Parser.evaluate(param1.substr(1), e) - A
           } : function(e) {
-            return Parser.evaluate(s, e) - A
+            return Parser.evaluate(param1, e) - A
           }
         }
-        return r.bytes += C > 255 ? 2 : 1, 4 == p && (S = function(e) {
-          var r = Parser.evaluate(s, e) - e._PC - 2;
+        return s.bytes += opcode > 255 ? 2 : 1, 4 == opcodesIndex && (evalFunction = function(e) {
+          var r = Parser.evaluate(param1, e) - e._PC - 2;
           if (r > 127) throw "Target out of range";
           if (r < -128) throw "Target out of range";
           return r < 0 && (r = 256 + r), r
-        }), 7 == p && (S = function(e) {
-          var n = Parser.evaluate(s, e) - e._PC - r.bytes;
+        }), 7 == opcodesIndex && (evalFunction = function(e) {
+          var n = Parser.evaluate(param1, e) - e._PC - s.bytes;
           return n < 0 && (n = 65536 + n), n
-        }), r.lens = C > 255 ? [C >> 8, 255 & C, S] : [C, S], 1 == p && r.bytes++, 5 == p && r.bytes++, 4 == p && r.bytes++, 3 == p && (r.bytes += 2, r.lens[r.bytes - 1] = null), 6 == p && (r.bytes += 2, r.lens[r.bytes - 1] = null), 7 == p && (r.bytes += 2, r.lens[r.bytes - 1] = null), r
+        }), s.lens = opcode > 255 ? [opcode >> 8, 255 & opcode, evalFunction] : [opcode, evalFunction], 1 == opcodesIndex && s.bytes++, 5 == opcodesIndex && s.bytes++, 4 == opcodesIndex && s.bytes++, 3 == opcodesIndex && (s.bytes += 2, s.lens[s.bytes - 1] = null), 6 == opcodesIndex && (s.bytes += 2, s.lens[s.bytes - 1] = null), 7 == opcodesIndex && (s.bytes += 2, s.lens[s.bytes - 1] = null), s
       }
       var c = 1;
-      if (r.bytes = 2, 1 == r.params.length && "[" === r.params[0][0]) return B[2] > 256 ? (r.lens[0] = B[2] >> 8, r.lens[1] = 255 & B[2], c = 2, r.bytes++) : r.lens[0] = B[2], s = r.params[0], r.lens[c] = 159, r.lens[c + 1] = function(e) {
-        return Parser.evaluate(s.substr(1, s.length - 2), e)
-      }, r.lens[c + 2] = null, r.bytes += 2, r;
-      if (B[2] <= 0 || 2 !== r.params.length) throw "Bad addressing mode at line " + r.numline;
-      B[2] > 256 ? (r.lens[0] = B[2] >> 8, r.lens[1] = 255 & B[2], c = 2, r.bytes++) : r.lens[0] = B[2];
+      // 1 parameter starting with '['
+      if (s.bytes = 2, 1 == s.params.length && "[" === s.params[0][0]) return opcodes[2] > 256 ? (s.lens[0] = opcodes[2] >> 8, s.lens[1] = 255 & opcodes[2], c = 2, s.bytes++) : s.lens[0] = opcodes[2], param1 = s.params[0], s.lens[c] = 159, s.lens[c + 1] = function(e) {
+        return Parser.evaluate(param1.substr(1, param1.length - 2), e)
+      }, s.lens[c + 2] = null, s.bytes += 2, s;
+      if (opcodes[2] <= 0 || 2 !== s.params.length) throw "Bad addressing mode at line " + s.numline;
+      opcodes[2] > 256 ? (s.lens[0] = opcodes[2] >> 8, s.lens[1] = 255 & opcodes[2], c = 2, s.bytes++) : s.lens[0] = opcodes[2];
+      param1 = s.params[0];
+      a = s.params[1];
+      u = param1;
+      a;
+      // d = 0 for non-indirect addressing modes and 16 for indirect addressing modes
       var d = 0;
-      s = r.params[0], a = r.params[1], u = s, a, "[" == s[0] && "]" == a[a.length - 1] && (d = 16, s = s.substr(1), a = a.substr(0, a.length - 1));
+      if ("[" == param1[0] && "]" == a[a.length - 1]) { // Indirect addressing
+        d = 16;
+        param1 = param1.substr(1);
+        a = a.substr(0, a.length - 1);
+      }
       var P = function(e) {
           var r = ["X", "Y", "U", "S"].indexOf(e.toUpperCase());
           if (r < 0) throw "Register name not recognized: " + e;
@@ -237,51 +250,58 @@ export const M6809 = {
           if (r < 0) throw "Register name not recognized: " + e;
           return r << 5
         };
-      if ("" === s) {
+      if ("" === param1) {
         if ("-" == a[0])
-          if ("-" == a[1]) r.lens[c] = 131 | P(a.substr(2)) | d;
+          if ("-" == a[1]) s.lens[c] = 131 | P(a.substr(2)) | d;
           else {
             if (d > 0) throw "Cannot use predecrement with 1";
-            r.lens[c] = 130 | P(a.substr(1))
+            s.lens[c] = 130 | P(a.substr(1))
           }
         else if ("+" == a[1])
-          if ("+" == a[2]) r.lens[c] = 129 | P(a.substr(0, 1)) | d;
+          if ("+" == a[2]) s.lens[c] = 129 | P(a.substr(0, 1)) | d;
           else {
             if (d > 0) throw "Cannot use postincrement with 1";
-            r.lens[c] = 128 | P(a.substr(0, 1))
+            s.lens[c] = 128 | P(a.substr(0, 1))
           }
-        else r.lens[c] = 132 | P(a) | d;
-        return r
+        else s.lens[c] = 132 | P(a) | d;
+        return s
       }
-      if ("A" === s.toUpperCase()) return r.lens[c] = 134 | P(a) | d, r;
-      if ("B" === s.toUpperCase()) return r.lens[c] = 133 | P(a) | d, r;
-      if ("D" === s.toUpperCase()) return r.lens[c] = 139 | P(a) | d, r;
+      if ("A" === param1.toUpperCase()) return s.lens[c] = 134 | P(a) | d, s;
+      if ("B" === param1.toUpperCase()) return s.lens[c] = 133 | P(a) | d, s;
+      if ("D" === param1.toUpperCase()) return s.lens[c] = 139 | P(a) | d, s;
+      // Variables may not be defined in the first pass
       try {
-        t = Parser.evaluate(s, n), "PC" == a.toUpperCase() && (t -= n._PC)
+        t = Parser.evaluate(param1, vars);
       } catch (e) {
-        t = null
+        t = null;
       }
-      return t > 65519 && 4 != b(a) ? (r.lens[c] = P(a) | d | 32 - (65536 - t) & 31, r) : t < 16 && t > -17 && 4 != b(a) ? (r.lens[c] = P(a) | d | 31 & t, r) : t < 128 && t > -129 && null !== t ? (t < 0 && (t = 256 + t), r.lens[c] = b(a) | d | 136, r.bytes++, "PC" == a.toUpperCase() ? r.lens[c + 1] = d ? function(e) {
-        var n = Parser.evaluate(u.substr(1), e) - e._PC - r.bytes;
-        return n < 0 && (n = 256 + n), n
-      } : function(e) {
-        var n = Parser.evaluate(u, e) - e._PC - r.bytes;
-        return n < 0 && (n = 256 + n), n
-      } : r.lens[c + 1] = d ? function(e) {
-        return Parser.evaluate(u.substr(1), e)
-      } : function(e) {
-        return Parser.evaluate(u, e)
-      }, r) : (r.bytes += 2, r.lens[c] = b(a) | d | 137, "PC" == a.toUpperCase() ? r.lens[c + 1] = d ? function(e) {
-        var n = Parser.evaluate(u.substr(1), e) - e._PC - r.bytes;
-        return n < 0 && (n += 65536), n
-      } : function(e) {
-        var n = Parser.evaluate(u, e) - e._PC - r.bytes;
-        return n < 0 && (n += 65536), n
-      } : r.lens[c + 1] = d ? function(e) {
-        return Parser.evaluate(u.substr(1), e)
-      } : function(e) {
-        return Parser.evaluate(u, e)
-      }, r.lens[c + 2] = null, r)
+      if (t > 65519 && 4 != b(a) && d === 0) {
+        // 5-bit offset, non-indirect
+        // where offset is 16-bit two's complement
+        // e.g. '0xFFFF,R'
+        s.lens[c] = P(a) | 32 - (65536 - t) & 31;
+        return s;
+      } else if (t < 16 && t > -17 && 4 != b(a) && d === 0) {
+        // 5-bit offset, non-indirect
+        s.lens[c] = P(a) | 31 & t;
+        return s;
+      } else if (t !== null && t < 128 && t > -129) {
+        // 8-bit offset, indirect or non-indirect
+        if (t < 0) t = 256 + t;
+        s.bytes += 1;
+        s.lens[c] = b(a) | d | 136;
+        s.lens[c+1] = t;
+        return s;
+      } else if (t !== null && t < 32768 && t > -32769) {
+        // 16-bit offset, indirect or non-indirect
+        s.bytes += 2;
+        s.lens[c] = b(a) | d | 137;
+        s.lens[c+1] = t >> 8;
+        s.lens[c+2] = t;
+        return s;
+      } else {
+        throw('16-bit offset overflow: ' + t);
+      }
     }
     return null
   },
