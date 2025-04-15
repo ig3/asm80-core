@@ -47,6 +47,7 @@ console.log('src: ', src);
 
 try {
   const x = await asm.compile(src,fs, {assembler:assembler});
+  console.log('x: ', JSON.stringify(x, null, 2));
 } catch (e) {
   console.log('failed with: ', e);
 }

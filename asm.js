@@ -9,9 +9,10 @@ import * as Parser from "./parser.js";
 //import all CPUs
 import {I8080} from "./cpu/i8080.js";
 import {M6800} from "./cpu/m6800.js";
+import {M6809} from "./cpu/m6809.js";
 import { C6502 } from "./cpu/c6502.js";
 import { Z80 } from "./cpu/z80.js";
-const cpus = [I8080, M6800, C6502, Z80];
+const cpus = [I8080, M6800, M6809, C6502, Z80];
 
 
 export const compile = async (source, fileSystem, opts = {assembler:null}, filename="noname") => {
@@ -22,10 +23,12 @@ export const compile = async (source, fileSystem, opts = {assembler:null}, filen
 
   if (typeof opts.assembler == "string") {
     const assembler = cpus.find(x=>x.cpu.toUpperCase()==opts.assembler.toUpperCase());
-    if (typeof assember !== "object") {
+    if (typeof assembler !== "object") {
       throw {msg:"No assembler for: " + opts.assembler, s:"Assembler error"};
     }
+    opts.assembler = assembler;
   }
+
 
     opts = {...opts, readFile: fileSystem.readFile, endian:false,
         ENT:null,

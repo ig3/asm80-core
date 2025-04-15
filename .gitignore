@@ -133,3 +133,6 @@ dist
 asm.old.js
 
 fail
+
+# vim temporary files
+*.swp
