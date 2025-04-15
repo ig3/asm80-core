@@ -38,6 +38,7 @@ See asm80-core.js and the tests for more complete examples.
 $ asm80-core file
 ```
 
+## Background
 [This](https://github.com/ig3/asm80-core)
 is a fork of
 [asm80/asm80-core](https://github.com/asm80/asm80-core)
@@ -62,7 +63,12 @@ of the code relevant to the bug. In particular, the parseOpcode function in
 cpu/m6809.js. It's still a mess and not well tested, but better than it
 was.
 
+I did this to compile and play with some code that I wrote for M6809 long
+ago. I don't have much ongoing need for it, so it probably won't get much
+attention. You will probably be better off using and supporting the
+original.
 
+## Old README
 Core assembler as ES6 module
 
 Currently I am converting codebase from 2010's form to modern. Please be patient. [Support my effort to rewrite and open the source code](https://donate.stripe.com/7sI8yU7jCbzp4wMeUX)
