@@ -16,12 +16,15 @@ const cpus = [I8080, M6800, C6502, Z80];
 
 export const compile = async (source, fileSystem, opts = {assembler:null}, filename="noname") => {
 
-  if (typeof opts.assembler == "string") {
-    opts.assembler = cpus.find(x=>x.cpu.toUpperCase()==opts.assembler.toUpperCase());
+  if (!opts.assembler) {
+    throw {msg:"No assembler specified", s:"Assembler error"};
   }
 
-  if (!opts.assembler || typeof opts.assembler != "object") {
-    throw {msg:"No assembler specified", s:"Assembler error"};
+  if (typeof opts.assembler == "string") {
+    const assembler = cpus.find(x=>x.cpu.toUpperCase()==opts.assembler.toUpperCase());
+    if (typeof assember !== "object") {
+      throw {msg:"No assembler for: " + opts.assembler, s:"Assembler error"};
+    }
   }
 
     opts = {...opts, readFile: fileSystem.readFile, endian:false,

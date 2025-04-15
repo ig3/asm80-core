@@ -45,4 +45,8 @@ const assembler = getType(srcPath);
 console.log('assembler: ', assembler);
 console.log('src: ', src);
 
-const x = await asm.compile(src,fs, {assembler:assembler});
+try {
+  const x = await asm.compile(src,fs, {assembler:assembler});
+} catch (e) {
+  console.log('failed with: ', e);
+}
