@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Core ASM80 compiler / assembler",
   "main": "asm.js",
+  "bin": {
+    "asm80-core": "./asm80-core.js"
+  },
   "type": "module",
   "scripts": {
     "test": "c8 qunit && c8 report --reporter=html"
