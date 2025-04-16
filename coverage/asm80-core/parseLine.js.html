@@ -865,25 +865,25 @@ const includedLineNumber = (s) =&gt; {
 <span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    return s.includedFileAtLine + "__" + s.numline;</span></span>
   }
 &nbsp;
-export const parseLine = (s, macros, opts = {stopFlag:null, olds:null, assembler:null}) =&gt; {
-    let t = s.line;
+export const parseLine = (line, macros, opts = {stopFlag:null, olds:null, assembler:null}) =&gt; {
+    let t = line.line;
     let ll;
 &nbsp;
     //anonymous labels
     //format: : label
     ll = t.match(/^\s*:\s*(.*)/);
     if (ll) {
-      s.anonymousLabel = "anon__" + includedLineNumber(s);
+      line.anonymousLabel = "anon__" + includedLineNumber(line);
       t = ll[1];
     }
 &nbsp;
-    //console.log(s, ll)
+    //console.log(line, ll)
     //labels
     //format: label:
     ll = t.match(/^\s*(\@{0,1}[a-zA-Z0-9-_]+):\s*(.*)/);
     //console.log(t, ll)
     if (ll) {
-      s.label = ll[1].toUpperCase();
+      line.label = ll[1].toUpperCase();
       t = ll[2];
     }
 &nbsp;
@@ -891,33 +891,33 @@ export const parseLine = (s, macros, opts = {stopFlag:null, olds:null, assembler
     //format: : label
 &nbsp;
     ll = t.match(/^\s*:\s*(.*)/);
-    //console.log(s, ll)
+    //console.log(line, ll)
     if (ll) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >      s.label = "__@anon" + s.numline;</span>
+<span class="cstat-no" title="statement not covered" >      line.label = "__@anon" + line.numline;</span>
 <span class="cstat-no" title="statement not covered" >      t = ll[2];</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 &nbsp;
 &nbsp;
-    s._dp = 0;
-    s.params = [];
+    line._dp = 0;
+    line.params = [];
 &nbsp;
     //special EQU format as "label = value"
     let oo = t.match(/^\s*(\=)\s*(.*)/);
     if (oo) {
-      s.opcode = oo[1].toUpperCase();
+      line.opcode = oo[1].toUpperCase();
       t = oo[2];
     } else {
       oo = t.match(/^\s*([\.a-zA-Z0-9-_]+)\s*(.*)/);
       //console.log("2",oo,t)
       if (oo) {
-        s.opcode = oo[1].toUpperCase();
+        line.opcode = oo[1].toUpperCase();
         t = oo[2];
       }
     }
     /*
     oo = t.match(/^\s*(:\=)\s*(.*)/);
     if (oo) {
-      s.opcode = "=";
+      line.opcode = "=";
       t = oo[2];
     }
 */
@@ -950,7 +950,7 @@ export const parseLine = (s, macros, opts = {stopFlag:null, olds:null, assembler
 &nbsp;
       let pp = t.match(/^\s*([^;]*)(.*)/);
       if (pp &amp;&amp; pp[1].length) {
-        s.paramstring = pp[1];
+        line.paramstring = pp[1];
 &nbsp;
         //sane strings
         let ppc = pp[1];
@@ -973,7 +973,7 @@ export const parseLine = (s, macros, opts = {stopFlag:null, olds:null, assembler
         }
 &nbsp;
         let px = ppc.split(/\s*,\s*/);
-        s.params = px.map((ppc) =&gt; {
+        line.params = px.map((ppc) =&gt; {
           let p = (ppc.replace(/€/g, ",").replace(/§/g, ";")).trim();
           p = p.replace(/00ss(.*?)\!/g, (n) =&gt; atobx(n.substr(4, n.length - 5)));
           return p;
@@ -984,275 +984,275 @@ export const parseLine = (s, macros, opts = {stopFlag:null, olds:null, assembler
       }
     }
 &nbsp;
-    //console.log("SSS",s)
+    //console.log("SSS",line)
     if (t) {
       let rr = t.match(/^\s*;*(.*)/);
       if (rr) {
-        s.remark = rr[1].replace(/00ss(.*?)\!/g, (n) =&gt; atobx(n.substr(4, n.length - 5)));
-        if (!s.remark) {
-          s.remark = " ";
+        line.remark = rr[1].replace(/00ss(.*?)\!/g, (n) =&gt; atobx(n.substr(4, n.length - 5)));
+        if (!line.remark) {
+          line.remark = " ";
         }
         t = "";
       }
     }
-    s.notparsed = t;
+    line.notparsed = t;
 &nbsp;
     //pokus s opts
-    //console.log("ZDECH", s)
-    if (s.opcode === "ORG") {
-      s.opcode = ".ORG";
+    //console.log("ZDECH", line)
+    if (line.opcode === "ORG") {
+      line.opcode = ".ORG";
     }
-    if (s.opcode === ".ERROR") {
-      s.paramstring = s.paramstring.replace(/00ss(.*?)\!/g, (n) =&gt; atobx(n.substr(4, n.length - 5)));
-      return s;
+    if (line.opcode === ".ERROR") {
+      line.paramstring = line.paramstring.replace(/00ss(.*?)\!/g, (n) =&gt; atobx(n.substr(4, n.length - 5)));
+      return line;
       //console.log(stopFlag,olds,vars)
-      //throw { "msg": s.paramstring.replace(/00ss(.*?)\!/g, function (n) { return atobx(n.substr(4, n.length - 5)) }), "s":s};
+      //throw { "msg": line.paramstring.replace(/00ss(.*?)\!/g, function (n) { return atobx(n.substr(4, n.length - 5)) }), "s":line};
     }
-    if (s.opcode === ".EQU") {
-      s.opcode = "EQU";
+    if (line.opcode === ".EQU") {
+      line.opcode = "EQU";
     }
-    if (s.opcode === ".FILL") {
-      s.opcode = "FILL";
+    if (line.opcode === ".FILL") {
+      line.opcode = "FILL";
     }
-    if (s.opcode === ".ORG") {
-        return s;
+    if (line.opcode === ".ORG") {
+        return line;
 &nbsp;
         // obsolete - evaluate origin has been suppressed
         /*
       try {
-        //				s.addr = Parser.evaluate(s.paramstring);
-        return s;
+        //				line.addr = Parser.evaluate(line.paramstring);
+        return line;
       } catch (e) {
         throw {
           msg: e.msg,
-          s: s
+          line: line
         };
       }
       */
     }
 &nbsp;
-    if (s.opcode === "DEFB") {
-      s.opcode = "DB";
-      return s;
+    if (line.opcode === "DEFB") {
+      line.opcode = "DB";
+      return line;
     }
-    if (s.opcode === ".BYTE") {
-      s.opcode = "DB";
-      return s;
+    if (line.opcode === ".BYTE") {
+      line.opcode = "DB";
+      return line;
     }
-    if (s.opcode === ".DB") {
-      s.opcode = "DB";
-      return s;
+    if (line.opcode === ".DB") {
+      line.opcode = "DB";
+      return line;
     }
-    if (s.opcode === ".WORD") {
-      s.opcode = "DW";
-      return s;
+    if (line.opcode === ".WORD") {
+      line.opcode = "DW";
+      return line;
     }
-    if (s.opcode === ".DW") {
-      s.opcode = "DW";
-      return s;
+    if (line.opcode === ".DW") {
+      line.opcode = "DW";
+      return line;
     }
-    if (s.opcode === "DEFW") {
-      s.opcode = "DW";
-      return s;
+    if (line.opcode === "DEFW") {
+      line.opcode = "DW";
+      return line;
     }
-    if (s.opcode === ".DD") {
-      s.opcode = "DD";
-      return s;
+    if (line.opcode === ".DD") {
+      line.opcode = "DD";
+      return line;
     }
-    if (s.opcode === ".DF") {
-      s.opcode = "DF";
-      return s;
+    if (line.opcode === ".DF") {
+      line.opcode = "DF";
+      return line;
     }
-    if (s.opcode === ".DFZXS") {
-      s.opcode = "DFZXS";
-      return s;
+    if (line.opcode === ".DFZXS") {
+      line.opcode = "DFZXS";
+      return line;
     }
-    if (s.opcode === ".DFF") {
-      s.opcode = "DFF";
-      return s;
+    if (line.opcode === ".DFF") {
+      line.opcode = "DFF";
+      return line;
     }
-    if (s.opcode === "DEFS") {
-      s.opcode = "DS";
-      return s;
+    if (line.opcode === "DEFS") {
+      line.opcode = "DS";
+      return line;
     }
-    if (s.opcode === ".RES") {
-      s.opcode = "DS";
-      return s;
+    if (line.opcode === ".RES") {
+      line.opcode = "DS";
+      return line;
     }
-    if (s.opcode === "DEFM") {
-      s.opcode = "DS";
-      return s;
-    }
-&nbsp;
-    if (s.opcode === ".ALIGN") {
-      s.opcode = "ALIGN";
-      return s;
+    if (line.opcode === "DEFM") {
+      line.opcode = "DS";
+      return line;
     }
 &nbsp;
-    if (s.opcode === ".IFN") {
-        s.opcode = "IFN";
-        return s;
+    if (line.opcode === ".ALIGN") {
+      line.opcode = "ALIGN";
+      return line;
+    }
+&nbsp;
+    if (line.opcode === ".IFN") {
+        line.opcode = "IFN";
+        return line;
     }
     
-     if (s.opcode === ".IF") {
-      s.opcode = "IF";
-      return s;
+     if (line.opcode === ".IF") {
+      line.opcode = "IF";
+      return line;
     }
     
-    if (s.opcode === ".ELSE") {
-      s.opcode = "ELSE";
-      return s;
+    if (line.opcode === ".ELSE") {
+      line.opcode = "ELSE";
+      return line;
     }
-    if (s.opcode === ".ENDIF") {
-      s.opcode = "ENDIF";
-      return s;
+    if (line.opcode === ".ENDIF") {
+      line.opcode = "ENDIF";
+      return line;
     }
 &nbsp;
-    if (s.opcode === ".PRAGMA") {
+    if (line.opcode === ".PRAGMA") {
       opts.PRAGMAS = opts.PRAGMAS || [];
-      opts.PRAGMAS.push(s.params[0].toUpperCase());
-      return s;
+      opts.PRAGMAS.push(line.params[0].toUpperCase());
+      return line;
     }
 &nbsp;
-    if (s.opcode === "EQU" ||
-      s.opcode === "=" ||
-      s.opcode === ".SET" ||
-      s.opcode === "IF" ||
-      s.opcode === "IFN" ||
-      s.opcode === "ELSE" ||
-      s.opcode === "ENDIF" ||
-      s.opcode === ".ERROR" ||
-      s.opcode === ".INCLUDE" ||
-      s.opcode === ".INCBIN" ||
-      s.opcode === ".MACRO" ||
-      s.opcode === ".ENDM" ||
-      s.opcode === ".BLOCK" ||
-      s.opcode === ".ENDBLOCK" ||
-      s.opcode === ".REPT" ||
-      s.opcode === ".CPU" ||
-      s.opcode === ".ENT" ||
-      s.opcode === ".BINFROM" ||
-      s.opcode === ".BINTO" ||
-      s.opcode === ".ENGINE" ||
-      s.opcode === ".PRAGMA" ||
-      s.opcode === "END" ||
-      s.opcode === ".END" ||
+    if (line.opcode === "EQU" ||
+      line.opcode === "=" ||
+      line.opcode === ".SET" ||
+      line.opcode === "IF" ||
+      line.opcode === "IFN" ||
+      line.opcode === "ELSE" ||
+      line.opcode === "ENDIF" ||
+      line.opcode === ".ERROR" ||
+      line.opcode === ".INCLUDE" ||
+      line.opcode === ".INCBIN" ||
+      line.opcode === ".MACRO" ||
+      line.opcode === ".ENDM" ||
+      line.opcode === ".BLOCK" ||
+      line.opcode === ".ENDBLOCK" ||
+      line.opcode === ".REPT" ||
+      line.opcode === ".CPU" ||
+      line.opcode === ".ENT" ||
+      line.opcode === ".BINFROM" ||
+      line.opcode === ".BINTO" ||
+      line.opcode === ".ENGINE" ||
+      line.opcode === ".PRAGMA" ||
+      line.opcode === "END" ||
+      line.opcode === ".END" ||
       //6809 assembler ops
-      s.opcode === "BSZ" ||
-      s.opcode === "FCB" ||
-      s.opcode === "FCC" ||
-      s.opcode === "FDB" ||
-      s.opcode === "FILL" ||
-      s.opcode === "RMB" ||
-      s.opcode === "ZMB" ||
-      s.opcode === "SETDP" ||
+      line.opcode === "BSZ" ||
+      line.opcode === "FCB" ||
+      line.opcode === "FCC" ||
+      line.opcode === "FDB" ||
+      line.opcode === "FILL" ||
+      line.opcode === "RMB" ||
+      line.opcode === "ZMB" ||
+      line.opcode === "SETDP" ||
       //65816
-      s.opcode === ".M8" ||
-      s.opcode === ".X8" ||
-      s.opcode === ".M16" ||
-      s.opcode === ".X16" ||
+      line.opcode === ".M8" ||
+      line.opcode === ".X8" ||
+      line.opcode === ".M16" ||
+      line.opcode === ".X16" ||
       //phase, dephase
-      s.opcode === ".PHASE" ||
-      s.opcode === ".DEPHASE" ||
-      s.opcode === ".SETPHASE" ||
-      s.opcode === "ALIGN" ||
-      s.opcode === ".CSTR" ||
-      s.opcode === ".ISTR" ||
-      s.opcode === ".PSTR" ||
+      line.opcode === ".PHASE" ||
+      line.opcode === ".DEPHASE" ||
+      line.opcode === ".SETPHASE" ||
+      line.opcode === "ALIGN" ||
+      line.opcode === ".CSTR" ||
+      line.opcode === ".ISTR" ||
+      line.opcode === ".PSTR" ||
       //segments
-      s.opcode === ".CSEG" ||
-      s.opcode === ".DSEG" ||
-      s.opcode === ".ESEG" ||
-      s.opcode === ".BSSEG" ||
+      line.opcode === ".CSEG" ||
+      line.opcode === ".DSEG" ||
+      line.opcode === ".ESEG" ||
+      line.opcode === ".BSSEG" ||
       //modules
-      s.opcode === ".EXPORT" ||
-      s.opcode === ".EXTERN" ||
-      s.opcode === "DB" ||
-      s.opcode === "DW" ||
-      s.opcode === "DD" ||
-      s.opcode === "DF" ||
-      s.opcode === "DFF" ||
-      s.opcode === "DFZXS" ||
-      s.opcode === "DS") {
-      return s;
+      line.opcode === ".EXPORT" ||
+      line.opcode === ".EXTERN" ||
+      line.opcode === "DB" ||
+      line.opcode === "DW" ||
+      line.opcode === "DD" ||
+      line.opcode === "DF" ||
+      line.opcode === "DFF" ||
+      line.opcode === "DFZXS" ||
+      line.opcode === "DS") {
+      return line;
     }
 &nbsp;
-    if (s.opcode === ".DEBUGINFO" ||
-      s.opcode === ".MACPACK" ||
-      s.opcode === ".FEATURE" ||
-      s.opcode === ".ZEROPAGE" ||
-      s.opcode === ".SEGMENT" ||
-      s.opcode === ".SETCPU") {
-      s.opcode = "";
-      return s;
+    if (line.opcode === ".DEBUGINFO" ||
+      line.opcode === ".MACPACK" ||
+      line.opcode === ".FEATURE" ||
+      line.opcode === ".ZEROPAGE" ||
+      line.opcode === ".SEGMENT" ||
+      line.opcode === ".SETCPU") {
+      line.opcode = "";
+      return line;
     }
 &nbsp;
-    if (!s.opcode &amp;&amp; s.label) {
-      return s;
+    if (!line.opcode &amp;&amp; line.label) {
+      return line;
     }
     let ax = null
     try {
-      ax = opts.assembler.parseOpcode(s, {}, Parser);
+      ax = opts.assembler.parseOpcode(line, {}, Parser);
     } catch (e) {
       throw {
         msg: e,
-        s: s
+        line: line
       };
     }
-    //console.log("SS",JSON.stringify(s),ax)
+    //console.log("SS",JSON.stringify(line),ax)
     if (ax !== null) return ax;
 &nbsp;
-    if (macros[s.opcode]) {
-      s.macro = s.opcode;
-      return s;
+    if (macros[line.opcode]) {
+      line.macro = line.opcode;
+      return line;
     }
 &nbsp;
     //label bez dvojtecky
-    //console.log(s,s2)
-    if (!s.label &amp;&amp; !opts.stopFlag) {
-      //console.log(s)
-      //let s2 = {line:s.line,numline:s.numline, addr:null,bytes:0};
-      let s2 = JSON.parse(JSON.stringify(s));
+    //console.log(line,s2)
+    if (!line.label &amp;&amp; !opts.stopFlag) {
+      //console.log(line)
+      //let s2 = {line:line.line,numline:line.numline, addr:null,bytes:0};
+      let s2 = JSON.parse(JSON.stringify(line));
       s2.addr = null;
       s2.bytes = 0;
-      s2.oldline = s.line;
+      s2.oldline = line.line;
 &nbsp;
-      if (s.remark &amp;&amp; !s.opcode) {
-        return s;
+      if (line.remark &amp;&amp; !line.opcode) {
+        return line;
       }
-      if (!s.params || s.params.length === 0)
+      if (!line.params || line.params.length === 0)
         throw {
-          msg: "Unrecognized instruction " + s.opcode,
-          s: s
+          msg: "Unrecognized instruction " + line.opcode,
+          line: line
         };
-      if (!s.opcode)
+      if (!line.opcode)
 <span class="branch-0 cbranch-no" title="branch not covered" >        throw {</span>
-<span class="cstat-no" title="statement not covered" >          msg: "Unrecognized instruction " + s.opcode,</span>
-<span class="cstat-no" title="statement not covered" >          s: s</span>
+<span class="cstat-no" title="statement not covered" >          msg: "Unrecognized instruction " + line.opcode,</span>
+<span class="cstat-no" title="statement not covered" >          line: line</span>
 <span class="cstat-no" title="statement not covered" >        };</span>
       //hotfix
-      //console.log(s)
-      if (s.params[0].indexOf(":=") === 0)
-        s.params[0] = ".SET" + s.params[0].substr(2);
-      s2.line = s.opcode + ": " + s.params.join();
-      if (s.remark) s2.line += " ;" + s.remark;
+      //console.log(line)
+      if (line.params[0].indexOf(":=") === 0)
+        line.params[0] = ".SET" + line.params[0].substr(2);
+      s2.line = line.opcode + ": " + line.params.join();
+      if (line.remark) s2.line += " ;" + line.remark;
       //console.log("ATTEMPT2",s2.line)
-      let sx = parseLine(s2, macros, {stopFlag:true, olds:s, ...opts});
+      let sx = parseLine(s2, macros, {stopFlag:true, olds:line, ...opts});
       if (!sx.opcode)
 <span class="branch-0 cbranch-no" title="branch not covered" >        throw {</span>
-<span class="cstat-no" title="statement not covered" >          msg: "Unrecognized instruction " + s.opcode,</span>
-<span class="cstat-no" title="statement not covered" >          s: s</span>
+<span class="cstat-no" title="statement not covered" >          msg: "Unrecognized instruction " + line.opcode,</span>
+<span class="cstat-no" title="statement not covered" >          line: line</span>
 <span class="cstat-no" title="statement not covered" >        };</span>
       return sx;
     }
     if (opts.stopFlag)
       throw {
         msg: "Unrecognized instruction " + opts.olds.opcode,
-        s: s
+        line: line
       };
     throw {
-      msg: "Unrecognized instruction " + s.opcode,
-      s: s
+      msg: "Unrecognized instruction " + line.opcode,
+      line: line
     };
   };  </pre></td></tr></table></pre>
 
@@ -1261,7 +1261,7 @@ export const parseLine = (s, macros, opts = {stopFlag:null, olds:null, assembler
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-02-29T14:23:32.589Z
+                at 2025-04-16T17:01:14.352Z
             </div>
         <script src="../prettify.js"></script>
         <script>

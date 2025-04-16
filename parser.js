@@ -6,21 +6,21 @@ import { parseLine } from "./parseLine.js";
 
 import { toInternal, nonempty, norm } from "./utils/utils.js";
 
-export const parse = async (s, opts) => {
+export const parse = async (src, opts) => {
   // split and convert to internal lines
-  let i = toInternal(s.split(/\n/));
+  let lines = toInternal(src.split(/\n/));
   //remove empty lines
-  i = nonempty(i);
+  lines = nonempty(lines);
   //normalize lines
-  i = norm(i);
+  lines = norm(lines);
 
   //macro processing and expansion
   
-  let prei = await prepro(i, opts);
+  let prei = await prepro(lines, opts);
   //console.log(prei)
-  i = prei[0].map((line) => parseLine(line, prei[1], opts));
-  i = unroll(i, prei[1], null, opts);
+  lines = prei[0].map((line) => parseLine(line, prei[1], opts));
+  lines = unroll(lines, prei[1], null, opts);
   
-  //console.log("prei",i)
-  return i;
+  //console.log("prei",lines)
+  return lines;
 };

@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95% </span>
+                <span class="strong">94.08% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>171/180</span>
+                <span class='fraction'>175/186</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.29% </span>
+                <span class="strong">87.09% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>29/34</span>
+                <span class='fraction'>27/31</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95% </span>
+                <span class="strong">94.08% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>171/180</span>
+                <span class='fraction'>175/186</span>
             </div>
         
             
@@ -242,7 +242,14 @@
 <a name='L177'></a><a href='#L177'>177</a>
 <a name='L178'></a><a href='#L178'>178</a>
 <a name='L179'></a><a href='#L179'>179</a>
-<a name='L180'></a><a href='#L180'>180</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -261,12 +268,17 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
@@ -432,20 +444,26 @@ import * as Parser from "./parser.js";
 //import all CPUs
 import {I8080} from "./cpu/i8080.js";
 import {M6800} from "./cpu/m6800.js";
+import {M6809} from "./cpu/m6809.js";
 import { C6502 } from "./cpu/c6502.js";
 import { Z80 } from "./cpu/z80.js";
-const cpus = [I8080, M6800, C6502, Z80];
+const cpus = [I8080, M6800, M6809, C6502, Z80];
 &nbsp;
 &nbsp;
 export const compile = async (source, fileSystem, opts = {assembler:null}, filename="noname") =&gt; {
 &nbsp;
-  if (typeof opts.assembler == "string") {
-    opts.assembler = cpus.find(x=&gt;x.cpu.toUpperCase()==opts.assembler.toUpperCase());
-  }
-&nbsp;
-  if (!opts.assembler || typeof opts.assembler != "object") {
+  if (!opts.assembler) {
     throw {msg:"No assembler specified", s:"Assembler error"};
   }
+&nbsp;
+  if (typeof opts.assembler == "string") {
+    const assembler = cpus.find(x=&gt;x.cpu.toUpperCase()==opts.assembler.toUpperCase());
+    if (typeof assembler !== "object") <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >      throw {msg:"No assembler for: " + opts.assembler, s:"Assembler error"};</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    opts.assembler = assembler;
+  }
+&nbsp;
 &nbsp;
     opts = {...opts, readFile: fileSystem.readFile, endian:false,
         ENT:null,
@@ -502,7 +520,7 @@ export const compile = async (source, fileSystem, opts = {assembler:null}, filen
     } catch (e) {
         // Some error occured
         //console.log(e)
-        let s = e.s <span class="branch-0 cbranch-no" title="branch not covered" >|| "Internal error";</span>
+        let s = e.s || "Internal error";
 &nbsp;
 &nbsp;
         // Handle different kinds of errors
@@ -539,7 +557,7 @@ export const compile = async (source, fileSystem, opts = {assembler:null}, filen
 <span class="cstat-no" title="statement not covered" >          }</span>
 <span class="cstat-no" title="statement not covered" >          </span>
 <span class="cstat-no" title="statement not covered" >        }</span>
-        if (!e.s) <span class="branch-0 cbranch-no" title="branch not covered" >e.s = s;</span>
+        if (!e.s) e.s = s;
         
         throw {
           error: {
@@ -607,7 +625,7 @@ export const asm = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-02-29T14:23:32.589Z
+                at 2025-04-16T17:01:14.352Z
             </div>
         <script src="../prettify.js"></script>
         <script>
