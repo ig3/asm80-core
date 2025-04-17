@@ -342,3 +342,27 @@ t.test('CMPA [$2000]', t => {
   t.equal(result, 0x2000, 'formula result');
   t.end();
 });
+
+t.test('CMPA >$2000', t => {
+  s = { opcode: 'CMPA', params: ['>$2000'], paramstring: '>$2000', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xB1, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.lens[2], null, 'Opcode 2');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x2000, 'formula result');
+  t.end();
+});
+
+t.test('CMPD >$2000', t => {
+  s = { opcode: 'CMPD', params: ['>$2000'], paramstring: '>$2000', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  console.log('p: ', p);
+  t.equal(p.lens[0], 0x10, 'Opcode 0');
+  t.equal(p.lens[1], 0xb3, 'Opcode 1');
+  t.equal(typeof (p.lens[2]), 'function', 'Opcode 2');
+  t.equal(p.lens[3], null, 'Opcode 2');
+  const result = p.lens[2](vars);
+  t.equal(result, 0x2000, 'formula result');
+  t.end();
+});
