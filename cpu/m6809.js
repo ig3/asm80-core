@@ -479,16 +479,16 @@ export const M6809 = {
       } else if (term !== null && term < 128 && term > -129) {
         // 8-bit offset, indirect or non-indirect
         if (term < 0) term = 256 + term;
-        line.lens[line.bytes++] = registerBits(param2) | indirectBit | 136;
+        line.lens[line.bytes++] = registerOrPCBits(param2) | indirectBit | 136;
         line.lens[line.bytes++] = term;
       } else if (term !== null && term < 32768 && term > -32769) {
         // 16-bit offset, indirect or non-indirect
-        line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
+        line.lens[line.bytes++] = registerOrPCBits(param2) | indirectBit | 137;
         line.lens[line.bytes++] = term >> 8;
         line.lens[line.bytes++] = 0xFF & term;
       } else if (term === null) {
         // Unresolved term, could end up being 16bit
-        line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
+        line.lens[line.bytes++] = registerOrPCBits(param2) | indirectBit | 137;
         line.lens[line.bytes++] = function (e) {
           return Parser.evaluate(param1, e);
         };
