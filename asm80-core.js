@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-import {asm} from "./asm.js";
-import {lst} from "./listing.js";
-import {ihex} from "./utils/ihex.js";
+import { asm } from './asm.js';
+import { lst } from './listing.js';
+import { ihex } from './utils/ihex.js';
 
 import * as fs from 'node:fs/promises';
-import {readFileSync, writeFileSync} from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const srcPath = process.argv[2];
 
-const src = readFileSync(srcPath,'utf-8');
+const src = readFileSync(srcPath, 'utf-8');
 
-function getType(srcPath) {
+function getType (srcPath) {
   let type = 'unknown';
   switch (path.extname(srcPath).toUpperCase()) {
   case '.A80':
@@ -45,15 +45,15 @@ function getType(srcPath) {
 const assembler = getType(srcPath);
 
 try {
-  const result = await asm.compile(src,fs, {assembler:assembler});
-  let listing = lst(result, true, false);
+  const result = await asm.compile(src, fs, { assembler: assembler });
+  const listing = lst(result, true, false);
   writeFileSync(
-    path.format({...path.parse(srcPath), base: '', ext: '.lst'}),
+    path.format({ ...path.parse(srcPath), base: '', ext: '.lst' }),
     listing
   );
-  let hex = ihex(result);
+  const hex = ihex(result);
   writeFileSync(
-    path.format({...path.parse(srcPath), base: '', ext: '.hex'}),
+    path.format({ ...path.parse(srcPath), base: '', ext: '.hex' }),
     hex
   );
 } catch (e) {

@@ -1,20 +1,20 @@
 /// <reference path="../parser.js" />
 
-import {I8080} from "../cpu/i8080.js";
+import { I8080 } from '../cpu/i8080.js';
 
-//QUnit test for parser.js
+// QUnit test for parser.js
 
-import QUnit from "qunit";
+import QUnit from 'qunit';
 
-import * as Parser from "../parser.js";
+import * as Parser from '../parser.js';
 
-import { beautify } from "../beautify.js";
+import { beautify } from '../beautify.js';
 
 QUnit.module('beautify');
-//QUnit.config.hidepassed = true;
+// QUnit.config.hidepassed = true;
 
-//test suite
-let data = `label: nop
+// test suite
+const data = `label: nop
  nop
  org 0x100
  va equ 123
@@ -74,43 +74,39 @@ somelabel nop
   xyz
   xyz
 
-.end`
+.end`;
 
 const dummyreadFile = (filename) => {
-    //console.log("INCLUDE", filename)
-    return `nop
+  // console.log("INCLUDE", filename)
+  return `nop
     .block blk
     dw 1
-    .endblock`
-}
+    .endblock`;
+};
 
 const doBeautify = async (data) => {
-    try {
+  try {
+    const lines = await beautify(data, { assembler: I8080, readFile: dummyreadFile });
+    return lines;
+  } catch (e) {
+    console.log(e);
+    return e;
+  }
+};
 
-    
-    let lines = await beautify(data, {assembler:I8080, readFile:dummyreadFile});
-    return lines
-    } catch (e) {
-        console.log(e)
-        return e
-    }
-}
-
-const testParse = (data, showError=false) => {
-    try {
-
-    
-    let lines = beautify(data, {assembler:I8080, readFile:dummyreadFile});
-    if (showError) console.log(lines)
-    return "OK"
-    } catch (e) {
-        if (showError) console.log(e)
-        throw e
-    }
-}
+const testParse = (data, showError = false) => {
+  try {
+    const lines = beautify(data, { assembler: I8080, readFile: dummyreadFile });
+    if (showError) console.log(lines);
+    return 'OK';
+  } catch (e) {
+    if (showError) console.log(e);
+    throw e;
+  }
+};
 
 QUnit.test('basic beautify', async assert => {
-    let o = await doBeautify(data, true)
-    //console.log("BEUA",o)
-  assert.ok(o, "beautify returns something");
+  const o = await doBeautify(data, true);
+  // console.log("BEUA",o)
+  assert.ok(o, 'beautify returns something');
 });
