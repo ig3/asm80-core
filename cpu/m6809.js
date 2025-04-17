@@ -490,7 +490,7 @@ export const M6809 = {
         // Unresolved term, could end up being 16bit
         line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
         line.lens[line.bytes++] = function (e) {
-            return Parser.evaluate(param1, e);
+          return Parser.evaluate(param1, e);
         };
         line.lens[line.bytes++] = null;
       } else {
