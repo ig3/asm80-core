@@ -1,7 +1,7 @@
 import { I8080 } from '../cpu/i8080.js';
 import { M6800 } from '../cpu/m6800.js';
 import { DUMMY, DUMMYE } from '../cpu/dummy.js';
-import { lst, html } from '../listing.js';
+import { lst } from '../listing.js';
 
 import fs from 'fs';
 
@@ -23,10 +23,15 @@ QUnit.module('pass2');
 const asmI8080 = fs.readFileSync('./test/suite/test.a80', 'utf-8');
 const asmM6800 = fs.readFileSync('./test/suite/test.a68', 'utf-8');
 const asmDUMMY = fs.readFileSync('./test/suite/test.dummy', 'utf-8');
-const asmRELOCABLE = fs.readFileSync('./test/suite/relocable.a80', 'utf-8');
+// const asmRELOCABLE = fs.readFileSync('./test/suite/relocable.a80', 'utf-8');
 
 const doPass = async (data, showError = false, assembler = I8080, name = '') => {
-  const opts = { assembler, readFile: fileSystem.readFile, PRAGMAS: [], endian: assembler.endian, };
+  const opts = {
+    assembler: assembler,
+    readFile: fileSystem.readFile,
+    PRAGMAS: [],
+    endian: assembler.endian,
+  };
 
   try {
     const o = await Parser.parse(data, opts);
@@ -43,14 +48,14 @@ const doPass = async (data, showError = false, assembler = I8080, name = '') => 
     // console.log("VARS",vx[1])
     // console.log("XREF",opts.xref)
 
-    if (showError == 2) console.log(vx);
+    if (showError === 2) console.log(vx);
     const l = lst({ dump: vx[0], vars: vx[1], opts: opts }, false, true);
     if (name) fs.writeFileSync('./test/suite/' + name + '.lst', l);
     if (name) fs.writeFileSync('./test/suite/' + name + '.obj', JSON.stringify(vx[0], null, 2));
     // let l2 = lst(vx[0],vx[1], true, false, opts)
     // let www = html(vx[0],vx[1],false, true,opts)
     // let www2 = html(vx[0],vx[1],true, false,opts)
-    if (showError == 3)console.log(l);
+    if (showError === 3)console.log(l);
     return vx;
   } catch (e) {
     if (showError)console.log(JSON.stringify(e));
@@ -97,7 +102,7 @@ QUnit.test('relocable 8080', async assert => {
 QUnit.test('ORG in module', async assert => {
   asyncThrows(assert, () => {
     return doPass('.pragma module\n.org 100', false, I8080);
-  }, (err) => err.msg == 'ORG is not allowed in modules');
+  }, (err) => err.msg === 'ORG is not allowed in modules');
 });
 
 QUnit.test('EQU without label', async assert => {

@@ -1,5 +1,6 @@
 import { I8080 } from '../cpu/i8080.js';
 import { Parser } from '../expression-parser.js';
+import QUnit from 'qunit';
 
 QUnit.config.hidepassed = true;
 

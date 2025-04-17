@@ -6,7 +6,7 @@ import { I8080 } from '../cpu/i8080.js';
 
 import QUnit from 'qunit';
 
-import * as Parser from '../parser.js';
+// import * as Parser from '../parser.js';
 
 import { beautify } from '../beautify.js';
 
@@ -94,6 +94,7 @@ const doBeautify = async (data) => {
   }
 };
 
+/*
 const testParse = (data, showError = false) => {
   try {
     const lines = beautify(data, { assembler: I8080, readFile: dummyreadFile });
@@ -104,6 +105,7 @@ const testParse = (data, showError = false) => {
     throw e;
   }
 };
+*/
 
 QUnit.test('basic beautify', async assert => {
   const o = await doBeautify(data, true);

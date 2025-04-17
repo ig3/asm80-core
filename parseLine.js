@@ -21,7 +21,7 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
   // console.log(line, ll)
   // labels
   // format: label:
-  ll = t.match(/^\s*(\@{0,1}[a-zA-Z0-9-_]+):\s*(.*)/);
+  ll = t.match(/^\s*(@{0,1}[a-zA-Z0-9-_]+):\s*(.*)/);
   // console.log(t, ll)
   if (ll) {
     line.label = ll[1].toUpperCase();
@@ -42,12 +42,12 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
   line.params = [];
 
   // special EQU format as "label = value"
-  let oo = t.match(/^\s*(\=)\s*(.*)/);
+  let oo = t.match(/^\s*(=)\s*(.*)/);
   if (oo) {
     line.opcode = oo[1].toUpperCase();
     t = oo[2];
   } else {
-    oo = t.match(/^\s*([\.a-zA-Z0-9-_]+)\s*(.*)/);
+    oo = t.match(/^\s*([.a-zA-Z0-9-_]+)\s*(.*)/);
     // console.log("2",oo,t)
     if (oo) {
       line.opcode = oo[1].toUpperCase();
@@ -65,13 +65,13 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
     // param grouping by {}
     // try {
     // console.log(t)
-    while (t.match(/\"(.*?)\"/g)) {
-      t = t.replace(/\"(.*?)\"/g, (n) => '00ss' + btoax(n) + '!');
+    while (t.match(/"(.*?)"/g)) {
+      t = t.replace(/"(.*?)"/g, (n) => '00ss' + btoax(n) + '!');
     }
 
-    while (t.match(/\'(.*?)\'/g)) {
+    while (t.match(/'(.*?)'/g)) {
       // console.log(t)
-      t = t.replace(/\'(.*?)\'/g, (n) => '00ss' + btoax('"' + n.substr(1, n.length - 2) + '"') + '!');
+      t = t.replace(/'(.*?)'/g, (n) => '00ss' + btoax('"' + n.substr(1, n.length - 2) + '"') + '!');
     }
 
     while (t.match(/\{(.*?)\}/g)) {
@@ -115,7 +115,7 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
       const px = ppc.split(/\s*,\s*/);
       line.params = px.map((ppc) => {
         let p = (ppc.replace(/€/g, ',').replace(/§/g, ';')).trim();
-        p = p.replace(/00ss(.*?)\!/g, (n) => atobx(n.substr(4, n.length - 5)));
+        p = p.replace(/00ss(.*?)!/g, (n) => atobx(n.substr(4, n.length - 5)));
         return p;
       });
 
@@ -128,7 +128,7 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
   if (t) {
     const rr = t.match(/^\s*;*(.*)/);
     if (rr) {
-      line.remark = rr[1].replace(/00ss(.*?)\!/g, (n) => atobx(n.substr(4, n.length - 5)));
+      line.remark = rr[1].replace(/00ss(.*?)!/g, (n) => atobx(n.substr(4, n.length - 5)));
       if (!line.remark) {
         line.remark = ' ';
       }
@@ -143,7 +143,7 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
     line.opcode = '.ORG';
   }
   if (line.opcode === '.ERROR') {
-    line.paramstring = line.paramstring.replace(/00ss(.*?)\!/g, (n) => atobx(n.substr(4, n.length - 5)));
+    line.paramstring = line.paramstring.replace(/00ss(.*?)!/g, (n) => atobx(n.substr(4, n.length - 5)));
     return line;
     // console.log(stopFlag,olds,vars)
     // throw { "msg": line.paramstring.replace(/00ss(.*?)\!/g, function (n) { return atobx(n.substr(4, n.length - 5)) }), "s":line};
@@ -160,7 +160,7 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
     // obsolete - evaluate origin has been suppressed
     /*
       try {
-        //				line.addr = Parser.evaluate(line.paramstring);
+        // line.addr = Parser.evaluate(line.paramstring);
         return line;
       } catch (e) {
         throw {
@@ -334,10 +334,12 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
   try {
     ax = opts.assembler.parseOpcode(line, {}, Parser);
   } catch (e) {
-    throw {
-      msg: e,
-      line: line
-    };
+    throw new Error(
+      e,
+      {
+        cause: line
+      }
+    );
   }
   // console.log("SS",JSON.stringify(line),ax)
   if (ax !== null) return ax;
@@ -361,16 +363,20 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
       return line;
     }
     if (!line.params || line.params.length === 0) {
-      throw {
-        msg: 'Unrecognized instruction ' + line.opcode,
-        line: line
-      };
+      throw new Error(
+        'Unrecognized instruction ' + line.opcode,
+        {
+          cause: line
+        }
+      );
     }
     if (!line.opcode) {
-      throw {
-        msg: 'Unrecognized instruction ' + line.opcode,
-        line: line
-      };
+      throw new Error(
+        'Unrecognized instruction ' + line.opcode,
+        {
+          cause: line
+        }
+      );
     }
     // hotfix
     // console.log(line)
@@ -380,21 +386,27 @@ export const parseLine = (line, macros, opts = { stopFlag: null, olds: null, ass
     // console.log("ATTEMPT2",s2.line)
     const sx = parseLine(s2, macros, { stopFlag: true, olds: line, ...opts });
     if (!sx.opcode) {
-      throw {
-        msg: 'Unrecognized instruction ' + line.opcode,
-        line: line
-      };
+      throw new Error(
+        'Unrecognized instruction ' + line.opcode,
+        {
+          cause: line
+        }
+      );
     }
     return sx;
   }
   if (opts.stopFlag) {
-    throw {
-      msg: 'Unrecognized instruction ' + opts.olds.opcode,
-      line: line
-    };
+    throw new Error(
+      'Unrecognized instruction ' + opts.olds.opcode,
+      {
+        cause: line
+      }
+    );
   }
-  throw {
-    msg: 'Unrecognized instruction ' + line.opcode,
-    line: line
-  };
+  throw new Error(
+    'Unrecognized instruction ' + line.opcode,
+    {
+      cause: line
+    }
+  );
 };

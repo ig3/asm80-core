@@ -4,8 +4,8 @@ import QUnit from 'qunit';
 
 // QUnit.config.notrycatch = true
 
-const equal = QUnit.assert.equal;
-const notEqual = QUnit.assert.notEqual;
+// const equal = QUnit.assert.equal;
+// const notEqual = QUnit.assert.notEqual;
 
 QUnit.module('ASM 6800');
 

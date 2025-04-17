@@ -1,5 +1,5 @@
 import { I8080 } from '../cpu/i8080.js';
-import { lst, html } from '../listing.js';
+import { lst } from '../listing.js';
 
 import fs from 'fs';
 
@@ -14,8 +14,6 @@ import { isrec, isrec28 } from '../utils/srec.js';
 import QUnit from 'qunit';
 
 import * as Parser from '../parser.js';
-import { get } from 'http';
-import { parse } from 'path';
 
 QUnit.module('relocable');
 
@@ -32,7 +30,12 @@ const readFile = (filename) => {
 };
 
 const doPass = async (data, showError = false, assembler = I8080, name = '') => {
-  const opts = { assembler, readFile, PRAGMAS: [], endian: assembler.endian, };
+  const opts = {
+    assembler: assembler,
+    readFile: readFile,
+    PRAGMAS: [],
+    endian: assembler.endian,
+  };
 
   try {
     const o = await Parser.parse(data, opts);
@@ -49,7 +52,7 @@ const doPass = async (data, showError = false, assembler = I8080, name = '') => 
     // console.log("VARS",vx[1])
     // console.log("XREF",opts.xref)
 
-    if (showError == 2) console.log(vx);
+    if (showError === 2) console.log(vx);
     const l = lst({ dump: vx[0], vars: vx[1], opts: opts }, false, true);
     if (name) fs.writeFileSync('./test/suite/' + name + '.lst', l);
     if (name) fs.writeFileSync('./test/suite/' + name + '.dump', JSON.stringify(vx[0], null, 2));
@@ -58,7 +61,7 @@ const doPass = async (data, showError = false, assembler = I8080, name = '') => 
     // let l2 = lst(vx[0],vx[1], true, false, opts)
     // let www = html(vx[0],vx[1],false, true,opts)
     // let www2 = html(vx[0],vx[1],true, false,opts)
-    if (showError == 3)console.log(l);
+    if (showError === 3)console.log(l);
     return vx;
   } catch (e) {
     if (showError)console.log(JSON.stringify(e));

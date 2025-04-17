@@ -1,7 +1,7 @@
 import { toHex2, toHex4 } from './utils/utils.js';
 export const lst = (result, raw, compact = false) => {
   const V = result.dump;
-  const vars = result.vars;
+  // const vars = result.vars;
   const opts = result.opts;
   let ln;
   let op;
@@ -90,7 +90,7 @@ export const lst = (result, raw, compact = false) => {
   const xref = opts.xref;
   for (const k in xref) {
     if (xref[k] === null) continue;
-    if (k[0] == '_' && k[1] == '_') continue;
+    if (k[0] === '_' && k[1] === '_') continue;
     if (k[k.length - 1] === '$') continue;
     ln = '';
     ln += k + ': ';
@@ -99,12 +99,12 @@ export const lst = (result, raw, compact = false) => {
     }
     ln += toHex4(xref[k].value);
     ln += ' DEFINED AT LINE ' + xref[k].defined.line;
-    if (xref[k].defined.file != '*main*') ln += ' IN ' + xref[k].defined.file;
+    if (xref[k].defined.file !== '*main*') ln += ' IN ' + xref[k].defined.file;
     out += ln + '\n';
     if (xref[k].usage) {
       for (let j = 0; j < xref[k].usage.length; j++) {
         out += '                    > USED AT LINE ' + xref[k].usage[j].line;
-        if (xref[k].usage[j].file != '*main*') { out += ' IN ' + xref[k].usage[j].file; }
+        if (xref[k].usage[j].file !== '*main*') { out += ' IN ' + xref[k].usage[j].file; }
         out += '\n';
       }
     }
@@ -115,12 +115,12 @@ export const lst = (result, raw, compact = false) => {
 export const html = (result, raw, compact = false) => {
   const V = result.dump;
   const vars = result.vars;
-  const opts = result.opts;
+  // const opts = result.opts;
   const parfix = (par) => {
     par += '';
     for (const k in vars) {
       if (vars[k] === null) continue;
-      if (k[0] == '_' && k[1] == '_') continue;
+      if (k[0] === '_' && k[1] === '_') continue;
       if (k[k.length - 1] === '$') continue;
       const re = new RegExp('^' + k + '$', 'i');
       if (par.match(re)) {

@@ -135,7 +135,7 @@ export const I8080 = {
     RQQ: function (reg) { return 'BDHPSW'.indexOf(reg.toUpperCase()); },
     RB: function (op, params, Parser) {
       let reg = this.R(params[0]);
-      if (reg < 0) throw 'Unknown register ' + params[0];
+      if (reg < 0) throw new Error('Unknown register ' + params[0]);
       reg <<= 3;
       return [reg | op, (vars) => Parser.evaluate(params[1], vars)];
     },
@@ -144,45 +144,45 @@ export const I8080 = {
     },
     RR: function (op, params, Parser) {
       let reg = this.R(params[0]);
-      if (reg < 0) throw 'Unknown register ' + params[0];
+      if (reg < 0) throw new Error('Unknown register ' + params[0]);
       reg <<= 3;
       return [reg | op];
     },
     RR0: function (op, params, Parser) {
       const reg = this.R(params[0]);
-      if (reg < 0) throw 'Unknown register ' + params[0];
+      if (reg < 0) throw new Error('Unknown register ' + params[0]);
       return [reg | op];
     },
     RRR: function (op, params, Parser) {
       let reg1 = this.R(params[0]);
-      if (reg1 < 0) throw 'Unknown register ' + params[0];
-      if (!params[1]) throw 'Missing second register';
+      if (reg1 < 0) throw new Error('Unknown register ' + params[0]);
+      if (!params[1]) throw new Error('Missing second register');
       const reg2 = this.R(params[1]);
-      if (reg2 < 0) throw 'Unknown register ' + params[1];
+      if (reg2 < 0) throw new Error('Unknown register ' + params[1]);
       reg1 <<= 3;
       return [reg1 | reg2 | op];
     },
     RPW: function (op, params, Parser) {
       let reg = this.RDD(params[0]);
-      if (reg < 0 || reg > 3) throw 'Unknown register ' + params[0];
+      if (reg < 0 || reg > 3) throw new Error('Unknown register ' + params[0]);
       reg <<= 4;
       return [reg | op, function (vars) { return Parser.evaluate(params[1], vars); }, null];
     },
     RPWD: function (op, params, Parser) {
       let reg = this.RDD(params[0]);
-      if (reg < 0 || reg > 3) throw 'Unknown register ' + params[0];
+      if (reg < 0 || reg > 3) throw new Error('Unknown register ' + params[0]);
       reg <<= 4;
       return [reg | op];
     },
     BD: function (op, params, Parser) {
       let reg = this.RBD(params[0]);
-      if (reg < 0 || reg > 1) throw 'Unknown register ' + params[0];
+      if (reg < 0 || reg > 1) throw new Error('Unknown register ' + params[0]);
       reg <<= 4;
       return [reg | op];
     },
     RQW: function (op, params, Parser) {
       let reg = this.RQQ(params[0]);
-      if (reg < 0 || reg > 3) throw 'Unknown register ' + params[0];
+      if (reg < 0 || reg > 3) throw new Error('Unknown register ' + params[0]);
       reg <<= 4;
       return [reg | op];
     },

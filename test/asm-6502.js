@@ -99,7 +99,7 @@ QUnit.test('SLO test, mode ixz', function () {
   p = C6502.parseOpcode(s, vars, Parser);
   QUnit.assert.equal(p.lens[0], 0x3, 'Opcode OK');
   QUnit.assert.equal(typeof (p.lens[1]), 'function', 'Opcode');
-  const test = p.lens[1](vars);
+  p.lens[1](vars);
   QUnit.assert.equal(p.bytes, 2, 'Length OK');
 });
 
@@ -108,7 +108,7 @@ QUnit.test('SLO test, mode izy', function () {
   p = C6502.parseOpcode(s, vars, Parser);
   QUnit.assert.equal(p.lens[0], 0x13, 'Opcode OK');
   QUnit.assert.equal(typeof (p.lens[1]), 'function', 'Opcode');
-  const test = p.lens[1](vars);
+  p.lens[1](vars);
   QUnit.assert.equal(p.bytes, 2, 'Length OK');
 });
 
@@ -301,7 +301,7 @@ QUnit.test('SAX test, mode zpy', function () {
   p = C6502.parseOpcode(s, vars, Parser);
   QUnit.assert.equal(p.lens[0], 0x97, 'Opcode OK');
   QUnit.assert.equal(typeof (p.lens[1]), 'function', 'Opcode');
-  const test = p.lens[1](vars);
+  p.lens[1](vars);
   QUnit.assert.equal(p.bytes, 2, 'Length OK');
 });
 
@@ -574,7 +574,7 @@ QUnit.test('BRA test, mode rel', function () {
   p = C6502.parseOpcode(s, vars, Parser);
   QUnit.assert.equal(p.lens[0], 0x80, 'Opcode OK');
   QUnit.assert.equal(typeof (p.lens[1]), 'function', 'Opcode');
-  const test = p.lens[1](vars);
+  p.lens[1](vars);
   QUnit.assert.equal(p.bytes, 2, 'Length OK');
 });
 
@@ -1567,7 +1567,7 @@ QUnit.test('JMP test, mode iax', function () {
   p = C6502.parseOpcode(s, vars, Parser);
   QUnit.assert.equal(p.lens[0], 0x7c, 'Opcode OK');
   QUnit.assert.equal(typeof (p.lens[1]), 'function', 'Opcode');
-  const test = p.lens[1](vars);
+  p.lens[1](vars);
   QUnit.assert.equal(p.bytes, 3, 'Length OK');
 });
 
@@ -1989,7 +1989,7 @@ QUnit.test('SBC test, mode imm', function () {
   p = C6502.parseOpcode(s, vars, Parser);
   QUnit.assert.equal(p.lens[0], 0xe9, 'Opcode OK');
   QUnit.assert.equal(typeof (p.lens[1]), 'function', 'Opcode');
-  const test = p.lens[1]({ _PC: 0x100 });
+  p.lens[1]({ _PC: 0x100 });
   QUnit.assert.equal(p.bytes, 2, 'Length OK');
 });
 

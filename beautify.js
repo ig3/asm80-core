@@ -9,7 +9,7 @@ const emptymask = (xs) => xs.map((lx) => {
     line: ';;;EMPTYLINE',
     numline: lx.numline
   };
-  while (l[0] == ' ') {
+  while (l[0] === ' ') {
     l = l.substr(1);
   }
   return l.length ? lx : lx2;
@@ -26,7 +26,7 @@ export const beautify = async (s, opts) => {
   });
   i = i.map((line) => {
     // console.log(line);
-    line.line = line.line.replace(/\%\%M/gi, '__m');
+    line.line = line.line.replace(/%%M/gi, '__m');
     return parseLine(line, prei[1], opts);
   });
   let out = '';
@@ -34,7 +34,7 @@ export const beautify = async (s, opts) => {
   for (let q = 0; q < i.length; q++) {
     op = i[q];
     ln = '';
-    if (op.remark == 'EMPTYLINE') {
+    if (op.remark === 'EMPTYLINE') {
       out += '\n';
       continue;
     }
@@ -46,7 +46,11 @@ export const beautify = async (s, opts) => {
 
     if (op.label) {
       ln += op.label;
-      if (op.opcode != 'EQU' && op.opcode != '=' && op.opcode != '.SET') { ln += ':'; }
+      if (
+        op.opcode !== 'EQU' &&
+        op.opcode !== '=' &&
+        op.opcode !== '.SET'
+      ) { ln += ':'; }
       ln += ' ';
     }
     while (ln.length < 12) {

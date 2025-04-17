@@ -2,7 +2,7 @@ import { Parser } from './expression-parser.js';
 
 const notInModule = (opts) => {
   if (opts.PRAGMAS && opts.PRAGMAS.indexOf('MODULE') > -1) {
-    throw { msg: 'Not allowed in modules' };
+    throw new Error('Not allowed in modules');
   }
 };
 
@@ -10,7 +10,9 @@ export const pass1 = async (V, vxs, opts) => {
   if (!opts.xref) opts.xref = {};
   let segment = 'CSEG';
   const segallow = () => {
-    if (segment === 'BSSEG') throw { msg: op.opcode + ' is not allowed in BSSEG' };
+    if (segment === 'BSSEG') {
+      throw new Error(op.opcode + ' is not allowed in BSSEG');
+    }
   };
   const seg = {};
   let PC = 0;
@@ -42,10 +44,12 @@ export const pass1 = async (V, vxs, opts) => {
 
     if (op.opcode === 'ENDIF') {
       if (!doif) {
-        throw {
-          msg: 'ENDIF without IF',
-          s: op
-        };
+        throw new Error(
+          'ENDIF without IF',
+          {
+            cause: op
+          }
+        );
       }
       ifskip = ifstack.pop();
       if (ifstack.length) {
@@ -59,15 +63,17 @@ export const pass1 = async (V, vxs, opts) => {
 
     if (op.opcode === 'ELSE') {
       if (!doif) {
-        throw {
-          msg: 'ELSE without IF',
-          s: op
-        };
+        throw new Error(
+          'ELSE without IF',
+          {
+            cause: op
+          }
+        );
       }
       ifskip = ifstack.pop();
       ifskip = ifskip ? 0 : 1;
       // console.log("ELS",ifstack,ifskip,ifstack.filter(function(q){return q==1}))
-      if (ifstack.filter((q) => q == 1).length) {
+      if (ifstack.filter((q) => q === 1).length) {
         ifskip = 1;
       }
       ifstack.push(ifskip);
@@ -168,10 +174,12 @@ export const pass1 = async (V, vxs, opts) => {
         if (typeof vars[varname + '$'] !== 'undefined' ||
             (beGlobal && vars[op.label] !== undefined)) {
           if (op.opcode !== '.SET' && op.opcode !== ':=') {
-            throw {
-              msg: 'Redefine label ' + op.label + ' at line ' + op.numline,
-              s: op,
-            };
+            throw new Error(
+              'Redefine label ' + op.label + ' at line ' + op.numline,
+              {
+                cause: op,
+              }
+            );
           }
         }
       }
@@ -202,7 +210,7 @@ export const pass1 = async (V, vxs, opts) => {
     try {
       if (op.opcode === '.ORG') {
         if (opts.PRAGMAS && opts.PRAGMAS.indexOf('MODULE') > -1) {
-          throw { msg: 'ORG is not allowed in modules' };
+          throw new Error('ORG is not allowed in modules');
         }
         PC = Parser.evaluate(op.params[0], vars);
         op.addr = PC;
@@ -213,14 +221,14 @@ export const pass1 = async (V, vxs, opts) => {
       if (op.opcode === '.EXPORT') {
         // does not care now
         if (opts.PRAGMAS && opts.PRAGMAS.indexOf('MODULE') < 0) {
-          throw { msg: '.EXPORT is not allowed out of modules' };
+          throw new Error('.EXPORT is not allowed out of modules');
         }
         continue;
       }
 
       if (op.opcode === '.EXTERN') {
         if (opts.PRAGMAS && opts.PRAGMAS.indexOf('MODULE') < 0) {
-          throw { msg: '.EXTERN is not allowed out of modules' };
+          throw new Error('.EXTERN is not allowed out of modules');
         }
         let name = op.params[0];
         if (!name) name = op.label;
@@ -260,9 +268,9 @@ export const pass1 = async (V, vxs, opts) => {
       if (op.opcode === '.PHASE') {
         notInModule(opts);
         if (phase) {
-          throw {
-            msg: 'PHASE cannot be nested'
-          };
+          throw new Error(
+            'PHASE cannot be nested'
+          );
         }
         const newphase = Parser.evaluate(op.params[0], vars);
         op.addr = PC;
@@ -308,10 +316,12 @@ export const pass1 = async (V, vxs, opts) => {
         continue;
       }
     } catch (e) {
-      throw {
-        msg: e.msg,
-        s: op
-      };
+      throw new Error(
+        e.msg,
+        {
+          cause: op
+        }
+      );
     }
 
     if (op.opcode === 'DB' || op.opcode === 'FCB') {
@@ -342,10 +352,12 @@ export const pass1 = async (V, vxs, opts) => {
         const mystring = op.params[l].trim();
         const delim = mystring[0];
         if (mystring[mystring.length - 1] !== delim) {
-          throw {
-            msg: 'Delimiters does not match',
-            s: op
-          };
+          throw new Error(
+            'Delimiters does not match',
+            {
+              cause: op
+            }
+          );
         }
         op.bytes += mystring.length - 2;
       }
@@ -380,12 +392,14 @@ export const pass1 = async (V, vxs, opts) => {
       op.bytes = bytes;
       // console.log(bytes, typeof bytes)
       if (typeof bytes !== 'number') {
-        throw {
-          msg: 'DS / RMB needs a numerical parameter',
-          s: op
-        };
+        throw new Error(
+          'DS / RMB needs a numerical parameter',
+          {
+            cause: op
+          }
+        );
       }
-      if (op.params.length == 2) {
+      if (op.params.length === 2) {
         // DB alias
         let m = Parser.evaluate(op.params[1], vars);
         if (typeof m === 'string') m = m.charCodeAt(0);
@@ -513,18 +527,22 @@ export const pass1 = async (V, vxs, opts) => {
     if (op.opcode === '.INCBIN') {
       segallow();
       if (!op.params[0]) {
-        throw {
-          msg: 'No file name given at line ' + op.numline,
-          s: op
-        };
+        throw new Error(
+          'No file name given at line ' + op.numline,
+          {
+            cause: op
+          }
+        );
       }
       // console.log("Include "+params[0]);
       const nf = await opts.readFile(op.params[0], true);
       if (!nf) {
-        throw {
-          msg: 'Cannot find file ' + op.params[0] + ' for incbin',
-          s: op,
-        };
+        throw new Error(
+          'Cannot find file ' + op.params[0] + ' for incbin',
+          {
+            cause: op,
+          }
+        );
       }
 
       op.bytes = 0;
@@ -572,10 +590,12 @@ export const pass1 = async (V, vxs, opts) => {
     // console.log(op.bytes,op)
     PC += op.bytes;
     if (op.params && op.params.length && !op.opcode) {
-      throw {
-        msg: 'No opcode, possible missing',
-        s: op
-      };
+      throw new Error(
+        'No opcode, possible missing',
+        {
+          cause: op
+        }
+      );
     }
   }
 

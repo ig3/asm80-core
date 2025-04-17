@@ -24,7 +24,10 @@ const readFile = (filename) => {
 };
 
 const doPass = async (data, showError = false) => {
-  const opts = { assembler: I8080, readFile };
+  const opts = {
+    assembler: I8080,
+    readFile: readFile,
+  };
   try {
     const o = await Parser.parse(data, opts);
     // console.log("BEUAbc",o)
@@ -33,7 +36,7 @@ const doPass = async (data, showError = false) => {
     vx = await pass1(vx[0], vx[1], opts);
     vx = await pass1(vx[0], vx[1], opts);
     vx = await pass1(vx[0], vx[1], opts);
-    if (showError == 2)console.log(vx);
+    if (showError === 2)console.log(vx);
     return vx;
   } catch (e) {
     if (showError)console.log(e);

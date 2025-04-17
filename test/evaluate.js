@@ -1,6 +1,6 @@
 /// <reference path="../expression-parser.js" />
 
-import { I8080 } from '../cpu/i8080.js';
+// import { I8080 } from '../cpu/i8080.js';
 
 // QUnit test for expression-parser.js
 
@@ -60,7 +60,7 @@ QUnit.test('fptozx2', assert => {
 
 QUnit.test('fptozx3', assert => {
   assert.throws(() => {
-    const data = fptozx(3e99, true);
+    fptozx(3e99, true);
   });
 });
 QUnit.test('fptozx4', assert => {

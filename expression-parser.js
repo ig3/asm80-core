@@ -69,8 +69,9 @@ function Expression (tokens, ops1, ops2, functions) {
 }
 
 // Based on http://www.json.org/json2.js
-const cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
-const escapable = /[\\\'\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+// const cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+// const escapable = /[\\'\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+/*
 const meta = {
   // table of character substitutions
   '\b': '\\b',
@@ -81,6 +82,7 @@ const meta = {
   "'": "\\'",
   '\\': '\\\\',
 };
+*/
 
 /*
   function escapeValue(v) {
@@ -233,20 +235,21 @@ Expression.prototype = {
         n1 = nstack.pop();
         f = nstack.pop();
         if (f.apply && f.call) {
-          if (Object.prototype.toString.call(n1) == '[object Array]') {
+          if (Object.prototype.toString.call(n1) === '[object Array]') {
             nstack.push(f.apply(undefined, n1));
           } else {
+            // eslint-disable-next-line no-useless-call
             nstack.push(f.call(undefined, n1));
           }
         } else {
-          throw { msg: f + ' is not a function' };
+          throw new Error(f + ' is not a function');
         }
       } else {
-        throw { msg: 'invalid Expression' };
+        throw new Error('invalid Expression');
       }
     }
     if (nstack.length > 1) {
-      throw { msg: 'invalid Expression (parity)' };
+      throw new Error('invalid Expression (parity)');
     }
     let ev = nstack[0];
     const pragmas = values.__PRAGMAS;
@@ -310,20 +313,22 @@ Expression.prototype = {
         n1 = nstack.pop();
         f = nstack.pop();
         if (f.apply && f.call) {
-          if (Object.prototype.toString.call(n1) == '[object Array]') {
+          if (Object.prototype.toString.call(n1) === '[object Array]') {
             nstack.push(f.apply(undefined, n1));
           } else {
+            // TODO: is the call providing any value here???
+            // eslint-disable-next-line no-useless-call
             nstack.push(f.call(undefined, n1));
           }
         } else {
-          throw { msg: f + ' is not a function' };
+          throw new Error(f + ' is not a function');
         }
       } else {
-        throw { msg: 'invalid Expression' };
+        throw new Error('invalid Expression');
       }
     }
     if (nstack.length > 1) {
-      throw { msg: 'invalid Expression (parity)' };
+      throw new Error('invalid Expression (parity)');
     }
     return xref;
   },
@@ -345,7 +350,7 @@ Expression.prototype = {
           n2 = nstack.pop();
           n1 = nstack.pop();
           f = item.index_;
-          if (toJS && f == "^") {
+          if (toJS && f === "^") {
             nstack.push("Math.pow(" + n1 + "," + n2 + ")");
           } else {
             nstack.push("(" + n1 + f + n2 + ")");
@@ -381,7 +386,7 @@ Expression.prototype = {
       let vars = [];
       for (let i = 0; i < L; i++) {
         let item = this.tokens[i];
-        if (item.type_ === Tlet && vars.indexOf(item.index_) == -1) {
+        if (item.type_ === Tlet && vars.indexOf(item.index_) === -1) {
           vars.push(item.index_);
         }
       }
@@ -431,11 +436,11 @@ function fnebo (a, b) {
 }
 
 function fbequ (a, b) {
-  return Number(a) == Number(b) ? 1 : 0;
+  return Number(a) === Number(b) ? 1 : 0;
 }
 
 function fbnequ (a, b) {
-  return Number(a) == Number(b) ? 0 : 1;
+  return Number(a) === Number(b) ? 0 : 1;
 }
 
 function fblt (a, b) {
@@ -516,7 +521,7 @@ function near (d) {
 }
 
 function append (a, b) {
-  if (Object.prototype.toString.call(a) != '[object Array]') {
+  if (Object.prototype.toString.call(a) !== '[object Array]') {
     return [a, b];
   }
   a = a.slice();
@@ -672,7 +677,9 @@ Parser.prototype = {
     this.expression = expr;
     this.pos = 0;
 
-    if (!this.expression) { throw { msg: 'Empty expression, probably missing argument' }; }
+    if (!this.expression) {
+      throw new Error('Empty expression, probably missing argument');
+    }
 
     while (this.pos < this.expression.length) {
       if (this.isNumber()) {
@@ -693,6 +700,7 @@ Parser.prototype = {
           }
           expected = PRIMARY | LPAREN | FUNCTION | SIGN;
         } else if (this.isComment()) {
+          // Ignored
         } else {
           if ((expected & OPERATOR) === 0) {
             this.error_parsing(this.pos, 'unexpected operator');
@@ -768,6 +776,7 @@ Parser.prototype = {
 
         expected = OPERATOR | RPAREN | COMMA | LPAREN | CALL;
       } else if (this.isWhite()) {
+        // Ignored
       } else {
         if (this.errormsg === '') {
           this.error_parsing(
@@ -809,7 +818,7 @@ Parser.prototype = {
   error_parsing: function (column, msg) {
     this.success = false;
     this.errormsg = 'parse error [column ' + column + ']: ' + msg;
-    throw { msg: this.errormsg };
+    throw new Error(this.errormsg);
   },
 
   // \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
@@ -884,13 +893,13 @@ Parser.prototype = {
           base = 16;
         }
         if (str[str.length - 1] === 'h' || str[str.length - 1] === 'H') {
-          if (base == 10 || base == 2) {
+          if (base === 10 || base === 2) {
             strx = '0x' + str.substr(0, str.length - 1);
             base = 16;
           }
         }
         if (str[str.length - 1] === 'b' || str[str.length - 1] === 'B') {
-          if (base == 10) {
+          if (base === 10) {
             strx = str.substr(0, str.length - 1);
             base = 2;
           }
@@ -901,7 +910,7 @@ Parser.prototype = {
             str[str.length - 1] === 'o' ||
             str[str.length - 1] === 'O'
         ) {
-          if (base == 10) {
+          if (base === 10) {
             strx = str.substr(0, str.length - 1);
             base = 8;
           }
@@ -917,7 +926,7 @@ Parser.prototype = {
                       base = 2;
                     }
           */
-        if (base != 10) this.tokennumber = parseInt(strx, base);
+        if (base !== 10) this.tokennumber = parseInt(strx, base);
         else this.tokennumber = parseFloat(strx);
         r = true;
       } else {
@@ -984,12 +993,13 @@ Parser.prototype = {
         case 't':
           buffer.push('\t');
           break;
-        case 'u':
+        case 'u': {
           // interpret the following 4 characters as the hex of the unicode code point
           const codePoint = parseInt(v.substring(i + 1, i + 5), 16);
           buffer.push(String.fromCharCode(codePoint));
           i += 4;
           break;
+        }
         default:
           throw this.error_parsing(
             pos + i,
@@ -998,7 +1008,7 @@ Parser.prototype = {
         }
         escaping = false;
       } else {
-        if (c == '\\') {
+        if (c === '\\') {
           escaping = true;
         } else {
           buffer.push(c);
@@ -1015,14 +1025,14 @@ Parser.prototype = {
     const startpos = this.pos;
     if (
       (this.pos < this.expression.length &&
-          this.expression.charAt(this.pos) == "'") ||
-        this.expression.charAt(this.pos) == '"'
+          this.expression.charAt(this.pos) === "'") ||
+        this.expression.charAt(this.pos) === '"'
     ) {
       const delim = this.expression.charAt(this.pos);
       this.pos++;
       while (this.pos < this.expression.length) {
         const code = this.expression.charAt(this.pos);
-        if (code != delim || str.slice(-1) == '\\') {
+        if (code !== delim || str.slice(-1) === '\\') {
           str += this.expression.charAt(this.pos);
           this.pos++;
         } else {
@@ -1238,7 +1248,7 @@ Parser.prototype = {
     for (let i = this.pos; i < this.expression.length; i++) {
       const c = this.expression.charAt(i);
       if (c.toUpperCase() === c.toLowerCase()) {
-        if (i === this.pos || (c != '_' && (c < '0' || c > '9'))) {
+        if (i === this.pos || (c !== '_' && (c < '0' || c > '9'))) {
           break;
         }
       }
@@ -1258,7 +1268,7 @@ Parser.prototype = {
     for (let i = this.pos; i < this.expression.length; i++) {
       const c = this.expression.charAt(i);
       if (c.toUpperCase() === c.toLowerCase()) {
-        if (i === this.pos || (c != '_' && (c < '0' || c > '9'))) {
+        if (i === this.pos || (c !== '_' && (c < '0' || c > '9'))) {
           break;
         }
       }
@@ -1282,7 +1292,7 @@ Parser.prototype = {
         break;
       }
       if (c.toUpperCase() === c.toLowerCase() && c !== '<' && c !== '>') {
-        if (i === this.pos || (c != '_' && (c < '0' || c > '9'))) {
+        if (i === this.pos || (c !== '_' && (c < '0' || c > '9'))) {
           break;
         }
       }

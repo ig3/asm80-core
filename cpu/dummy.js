@@ -3,17 +3,17 @@ export const DUMMY = {
   parseOpcode: function (s, vars, Parser) {
     s.lens = [];
     if (!s.opcode) return s;
-    if (s.opcode == 'NOP') { return { bytes: 1, lens: [0x00] }; }
+    if (s.opcode === 'NOP') { return { bytes: 1, lens: [0x00] }; }
     // console.log(s.opcode,s.params)
     const p1 = s.params[0] + ''; // convert to string
-    if (s.opcode == 'P1') {
+    if (s.opcode === 'P1') {
       s.lens[0] = 1;
       s.lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
       s.bytes = 2;
 
       return s;
     }
-    if (s.opcode == 'P2') {
+    if (s.opcode === 'P2') {
       s.lens[0] = 1;
       s.lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
       s.lens[2] = null;
@@ -21,7 +21,7 @@ export const DUMMY = {
       return s;
     }
     // opcode, offset, addr2
-    if (s.opcode == 'PA2') {
+    if (s.opcode === 'PA2') {
       s.lens[0] = 1;
       s.lens[1] = 2;
       s.lens[2] = function (vars) { return Parser.evaluate(p1, vars); };
@@ -30,7 +30,7 @@ export const DUMMY = {
       return s;
     }
     // opcode, offset, offset, addr2
-    if (s.opcode == 'PB2') {
+    if (s.opcode === 'PB2') {
       s.lens[0] = 1;
       s.lens[1] = 2;
       s.lens[2] = 3;
@@ -39,14 +39,14 @@ export const DUMMY = {
       s.bytes = 5;
       return s;
     }
-    if (s.opcode == 'PX2') {
+    if (s.opcode === 'PX2') {
       s.lens[0] = 1;
       s.lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
       s.lens[2] = 'addr24';
       s.bytes = 4;
       return s;
     }
-    if (s.opcode == 'PY2') {
+    if (s.opcode === 'PY2') {
       s.lens[0] = 1;
       s.lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
       s.lens[2] = 'addr32';

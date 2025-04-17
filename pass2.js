@@ -12,11 +12,18 @@ export const pass2 = (vx, opts) => {
     } else {
       // strict
       if (typeof dta === 'string') {
-        if (dta.length != 1) throw { msg: 'String parameter too long (' + dta + ')' };
+        if (dta.length !== 1) {
+          throw new Error(
+            'String parameter too long (' + dta + ')'
+          );
+        }
         return dta.charCodeAt(0) & 0xff;
       } else {
-        if (dta > 255) throw { msg: 'Param out of bound (' + dta + ')' };
-        if (dta < -128) throw { msg: 'Param out of bound (' + dta + ')' };
+        if (dta > 255 || dta < -128) {
+          throw new Error(
+            'Param out of bounds (' + dta + ')'
+          );
+        }
         return dta & 0xff;
       }
     }
@@ -24,7 +31,7 @@ export const pass2 = (vx, opts) => {
   /*
       //never used
       const charVar16 = (dta) => {
-        if (typeof dta == "string") {
+        if (typeof dta === "string") {
           return dta.charCodeAt(0) & 0xff;
         } else {
           return dta & 0xff;
@@ -41,12 +48,11 @@ export const pass2 = (vx, opts) => {
 
   const V = vx[0];
   const vars = vx[1];
-  //		console.log(vars);
+  // console.log(vars);
   let op = null; let dta = null; let m; let bts; let l;
   const blocks = [];
   let ifskip = 0;
   let cond;
-  const doif = 0;
 
   for (let i = 0, j = V.length; i < j; i++) {
     try {
@@ -69,10 +75,12 @@ export const pass2 = (vx, opts) => {
 
       if (op.opcode === '.ERROR') {
         // console.log("ERROR", op)
-        throw {
-          msg: op.paramstring,
-          s: op
-        };
+        throw new Error(
+          op.paramstring,
+          {
+            cause: op
+          }
+        );
         // continue;
       }
 
@@ -84,10 +92,9 @@ export const pass2 = (vx, opts) => {
           if (!cond) ifskip = 1;
         } catch (e) {
           // console.log("CATCH",e)
-          throw {
-            msg: 'IF condition mismatched'
-          };
-          ifskip = 1;
+          throw new Error(
+            'IF condition mismatched'
+          );
         }
         continue;
       }
@@ -96,9 +103,9 @@ export const pass2 = (vx, opts) => {
           cond = Parser.evaluate(op.params[0], vars);
           if (cond) ifskip = 1;
         } catch (e) {
-          throw {
-            msg: 'IF condition mismatched'
-          };
+          throw new Error(
+            'IF condition mismatched'
+          );
         }
         continue;
       }
@@ -199,10 +206,12 @@ export const pass2 = (vx, opts) => {
       if (op.opcode === 'EQU') {
         // console.log(op.label);
         if (!op.label) {
-          throw {
-            msg: 'EQU without label',
-            s: op
-          };
+          throw new Error(
+            'EQU without label',
+            {
+              cause: op
+            }
+          );
         }
         vars[op.label] = Parser.evaluate(op.params[0], vars);
         continue;
@@ -235,7 +244,6 @@ export const pass2 = (vx, opts) => {
         op.lens = [];
         for (l = 0; l < op.params.length; l++) {
           const mystring = op.params[l].trim();
-          const delim = mystring[0];
           const m = mystring.substr(1, mystring.length - 2);
           for (let mm = 0; mm < m.length; mm++) {
             op.lens[bts++] = m.charCodeAt(mm);
@@ -513,7 +521,7 @@ export const pass2 = (vx, opts) => {
         }
       }
       if (op.lens && op.lens.length > 2 && typeof op.lens[2] === 'function') {
-        //				console.log("OPLENS3",op.lens[3], op.lens[2]);
+        // console.log("OPLENS3",op.lens[3], op.lens[2]);
         dta = op.lens[2](vars);
         if (op.lens[3] === null) {
           dta = op.lens[2](vars);
@@ -564,7 +572,7 @@ export const pass2 = (vx, opts) => {
           op.lens[3] = charVar8(dta);
         }
 
-        //				op.lens[3] = charVar8(op.lens[3](vars)) & 0xff;
+        // op.lens[3] = charVar8(op.lens[3](vars)) & 0xff;
       }
 
       if (op.lens && op.lens.length > 1) {
@@ -573,14 +581,14 @@ export const pass2 = (vx, opts) => {
         }
         if (isNaN(op.lens[1])) {
           // console.log(1201,op)
-          throw {
-            msg: 'param out of bounds, NaN'
-          };
+          throw new Error(
+            'param out of bounds, NaN'
+          );
         }
-        if ((op.lens[1] > 255 || op.lens[1] < -128) && op.lens.length == 2) {
-          throw {
-            msg: 'param out of bounds - ' + op.lens[1]
-          };
+        if ((op.lens[1] > 255 || op.lens[1] < -128) && op.lens.length === 2) {
+          throw new Error(
+            'param out of bounds - ' + op.lens[1]
+          );
         }
         if (op.lens[1] < 0) {
           op.lens[1] = 256 + op.lens[1];
@@ -590,11 +598,15 @@ export const pass2 = (vx, opts) => {
       // console.log(op.lens,op)
       // xref usage
     } catch (e) {
-      throw {
-        msg: e.msg,
-        s: op,
-        e: e
-      };
+      throw new Error(
+        e.msg,
+        {
+          cause: {
+            s: op,
+            e: e
+          }
+        }
+      );
     }
   }
 

@@ -16,10 +16,12 @@ const macroParams = (d, params = [], uniq, pars, qnumline) => {
   const xpars = pars;
   if (xpars && xpars.length > params.length) {
     out.numline = qnumline;
-    throw {
-      msg: 'Too few parameters for macro unrolling',
-      s: out
-    };
+    throw new Error(
+      'Too few parameters for macro unrolling',
+      {
+        cause: out
+      }
+    );
   }
 
   for (let i = params.length - 1; i >= 0; i--) {
@@ -47,32 +49,31 @@ const findBlock = (ni, block, opts) => {
     const p = parseLine(l, {}, opts);
     if (f) out.push(l);
     // if (!l.opcode) continue;
-    if (p.opcode == '.ENDBLOCK') {
+    if (p.opcode === '.ENDBLOCK') {
       if (f) {
         return out;
       }
-    } else if (p.opcode == '.BLOCK') {
+    } else if (p.opcode === '.BLOCK') {
       if (f) return out;
-      if (p.params[0].toUpperCase() == block.toUpperCase()) {
+      if (p.params[0].toUpperCase() === block.toUpperCase()) {
         out.push(l);
         f = true;
       }
     }
   }
-  throw {
-    msg: 'Cannot find block ' + block + ' in included file'
-  };
+  throw new Error(
+    'Cannot find block ' + block + ' in included file'
+  );
 };
 
 export const prepro = async (V, opts = {}, fullfile) => {
   if (!opts.includedFiles) opts.includedFiles = {};
-  let op; let ln; let paramstring = null; let px; let params = null;
+  let op; let ln; let px; let params = null;
   const macros = {};
   // let macroPars = {};
   let macroDefine = null;
   let reptCount = null;
   const out = [];
-  const outi = 0;
   for (let i = 0, j = V.length; i < j; i++) {
     op = V[i].line;
     const remark = op.match(/\s*(.)/);
@@ -98,7 +99,6 @@ export const prepro = async (V, opts = {}, fullfile) => {
     const opcode = ln[1].toUpperCase();
     const pp = ln[2].match(/^\s*([^;]*)(.*)/);
     if (pp && pp[1].length) {
-      paramstring = pp[1];
       px = pp[1].split(/\s*,\s*/);
       params = px.map(q => q.trim());
     } else {
@@ -110,16 +110,18 @@ export const prepro = async (V, opts = {}, fullfile) => {
       // block selective include
       let block = '';
       if (!params || !params[0]) {
-        throw {
-          msg: 'No file name given',
-          s: V[i]
-        };
+        throw new Error(
+          'No file name given',
+          {
+            caues: V[i]
+          }
+        );
       }
       if (params[0].indexOf(':') >= 0) {
         const px = params[0].split(':');
         params[0] = px[0];
         block = px[1];
-        if (px.length == 3) {
+        if (px.length === 3) {
           block = px[2];
         } else {
           // only 2 pars.
@@ -137,19 +139,21 @@ export const prepro = async (V, opts = {}, fullfile) => {
       let fullni;
       let nf;
 
-      if (params[0].toUpperCase() == 'THIS' && block) {
+      if (params[0].toUpperCase() === 'THIS' && block) {
         // console.log(fullfile);
         ni = findBlock(fullfile, block, opts);
         // console.log(tni)
       } else {
         // if (includedFiles[params[0].replace(/\"/g,"")]) throw {"msg":"File "+params[0].replace(/\"/g,"")+" is already included elsewhere - maybe recursion","s":V[i]};
         // console.log("Include "+params[0]);
-        nf = await opts.readFile(params[0].replace(/\"/g, ''));
+        nf = await opts.readFile(params[0].replace(/"/g, ''));
         if (!nf) {
-          throw {
-            msg: 'File ' + params[0] + ' not found',
-            s: V[i]
-          };
+          throw new Error(
+            'File ' + params[0] + ' not found',
+            {
+              cause: V[i]
+            }
+          );
         }
         // console.log(nf);
         ni = toInternal(nf.split(/\n/));
@@ -163,25 +167,27 @@ export const prepro = async (V, opts = {}, fullfile) => {
       // console.log(ni)
       const preni = await prepro(ni, {}, fullni);
       for (let k = 0; k < preni[0].length; k++) {
-        preni[0][k].includedFile = params[0].replace(/\"/g, '');
+        preni[0][k].includedFile = params[0].replace(/"/g, '');
         preni[0][k].includedFileAtLine = V[i].numline;
         out.push(preni[0][k]);
       }
-      for (k in preni[1]) {
+      for (const k in preni[1]) {
         macros[k] = preni[1][k];
       }
       // console.log(params[0].replace(/\"/g,""));
-      opts.includedFiles[params[0].replace(/\"/g, '')] = nf;
+      opts.includedFiles[params[0].replace(/"/g, '')] = nf;
       continue;
     }
 
     if (opcode === '.ENDM') {
       // console.log("endm")
       if (!macroDefine) {
-        throw {
-          msg: 'ENDM without MACRO at line ' + V[i].numline,
-          s: V[i]
-        };
+        throw new Error(
+          'ENDM without MACRO at line ' + V[i].numline,
+          {
+            cause: V[i]
+          }
+        );
       }
       if (reptCount) {
         // je to REPT makro, co ted?
@@ -248,19 +254,23 @@ export const prepro = async (V, opts = {}, fullfile) => {
       }
 
       if (!macroName) {
-        throw {
-          msg: 'Bad macro name at line ' + V[i].numline,
-          s: V[i]
-        };
+        throw new Error(
+          'Bad macro name at line ' + V[i].numline,
+          {
+            cause: V[i]
+          }
+        );
       }
       if (macroName[macroName.length - 1] === ':') { macroName = macroName.substr(0, macroName.length - 1); }
 
       macroDefine = macroName.toUpperCase();
       if (macros[macroDefine]) {
-        throw {
-          msg: 'Macro ' + macroDefine + ' redefinition at line ' + V[i].numline,
-          s: V[i],
-        };
+        throw new Error(
+          'Macro ' + macroDefine + ' redefinition at line ' + V[i].numline,
+          {
+            cause: V[i]
+          }
+        );
       }
       macros[macroDefine] = [params];
       // macroPars[macroDefine] = params;
@@ -269,24 +279,30 @@ export const prepro = async (V, opts = {}, fullfile) => {
 
     if (opcode === '.REPT') {
       if (!params || !params[0]) {
-        throw {
-          msg: 'No repeat count given',
-          s: V[i]
-        };
+        throw new Error(
+          'No repeat count given',
+          {
+            cause: V[i]
+          }
+        );
       }
       reptCount = Parser.evaluate(params[0]);
       if (!reptCount || reptCount < 1) {
-        throw {
-          msg: 'Bad repeat count given',
-          s: V[i]
-        };
+        throw new Error(
+          'Bad repeat count given',
+          {
+            cause: V[i]
+          }
+        );
       }
       macroDefine = '*REPT' + V[i].numline;
       if (macros[macroDefine]) {
-        throw {
-          msg: 'Macro redefinition at line ' + V[i].numline,
-          s: V[i]
-        };
+        throw new Error(
+          'Macro redefinition at line ' + V[i].numline,
+          {
+            cause: V[i]
+          }
+        );
       }
       macros[macroDefine] = [];
       continue;
@@ -299,10 +315,9 @@ export const prepro = async (V, opts = {}, fullfile) => {
     out.push(V[i]);
   }
   if (macroDefine) {
-    throw {
-      msg: 'MACRO ' + macroDefine + ' has no appropriate ENDM',
-      // s: V[i],
-    };
+    throw new Error(
+      'MACRO ' + macroDefine + ' has no appropriate ENDM'
+    );
   }
   // console.log(macros)
   return [out, macros];

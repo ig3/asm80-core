@@ -57,13 +57,13 @@ export const objCode = (V, vars, opts, moduleName = 'noname') => {
     };
 
     const opcode = ln.opcode;
-    if (opcode == '.EXTERN') {
+    if (opcode === '.EXTERN') {
       // must resolve the address
       let name = ln.params[0];
       if (!name) name = ln.label;
       externs.push(name.toUpperCase());
     }
-    if (opcode == '.EXPORT') {
+    if (opcode === '.EXPORT') {
       // must export this var
       let name = ln.params[0];
       // if (!name) name = ln.label
@@ -72,7 +72,7 @@ export const objCode = (V, vars, opts, moduleName = 'noname') => {
     }
 
     // BSS reserved space
-    if (ln.segment == 'BSSEG') {
+    if (ln.segment === 'BSSEG') {
       seglen.BSSEG += ln.bytes;
       continue;
     }
@@ -101,7 +101,7 @@ export const objCode = (V, vars, opts, moduleName = 'noname') => {
     }
 
     // is this only code? And the last one?
-    if (typeof op.rel === 'undefined' && typeof op.ext === 'undefined' && lastOne && lastOne.segment == op.segment) {
+    if (typeof op.rel === 'undefined' && typeof op.ext === 'undefined' && lastOne && lastOne.segment === op.segment) {
       // join them
       lastOne.lens = lastOne.lens.concat(op.lens);
       continue;
@@ -174,34 +174,34 @@ const addModule = (mod, st, out) => {
   for (const k in mod.exports) {
     const v = mod.exports[k];
     if (typeof st.resolves[k] === 'undefined') {
-      throw { msg: 'Variable ' + k + ' is not resolved' };
+      throw new Error('Variable ' + k + ' is not resolved');
     }
-    if (v.seg == 'CSEG') v.addr += st.caddr;
-    else if (v.seg == 'DSEG') v.addr += st.daddr;
-    else if (v.seg == 'ESEG') v.addr += st.eaddr;
-    else if (v.seg == 'BSSEG') v.addr += st.bsaddr;
+    if (v.seg === 'CSEG') v.addr += st.caddr;
+    else if (v.seg === 'DSEG') v.addr += st.daddr;
+    else if (v.seg === 'ESEG') v.addr += st.eaddr;
+    else if (v.seg === 'BSSEG') v.addr += st.bsaddr;
     st.resolves[k] = v;
     // remove K from notresolved
     st.notresolved = st.notresolved.filter((item) => item !== k);
   }
   for (const s of mod.code) {
     let addr = st.caddr;
-    if (s.segment == 'DSEG') addr = st.daddr;
-    else if (s.segment == 'ESEG') addr = st.eaddr;
-    else if (s.segment == 'BSSEG') addr = st.bsaddr;
+    if (s.segment === 'DSEG') addr = st.daddr;
+    else if (s.segment === 'ESEG') addr = st.eaddr;
+    else if (s.segment === 'BSSEG') addr = st.bsaddr;
     s.addr = addr;
     // new address in the given segment
     addr += s.lens.length;
-    if (s.segment == 'CSEG') st.caddr = addr;
-    else if (s.segment == 'DSEG') st.daddr = addr;
-    else if (s.segment == 'ESEG') st.eaddr = addr;
-    else if (s.segment == 'BSSEG') st.bsaddr = addr;
+    if (s.segment === 'CSEG') st.caddr = addr;
+    else if (s.segment === 'DSEG') st.daddr = addr;
+    else if (s.segment === 'ESEG') st.eaddr = addr;
+    else if (s.segment === 'BSSEG') st.bsaddr = addr;
     // local relocs
     if (s.rel) {
-      if (s.relseg == 'CSEG') s.base = cbase;
-      else if (s.relseg == 'DSEG') s.base = dbase;
-      else if (s.relseg == 'ESEG') s.base = ebase;
-      else if (s.relseg == 'BSSEG') s.base = bsbase;
+      if (s.relseg === 'CSEG') s.base = cbase;
+      else if (s.relseg === 'DSEG') s.base = dbase;
+      else if (s.relseg === 'ESEG') s.base = ebase;
+      else if (s.relseg === 'BSSEG') s.base = bsbase;
     }
     // no unresolved at this point
     /*
@@ -244,7 +244,7 @@ export const linkModules = (data, modules, library) => {
 
     for (const k in mod.exports) {
       if (resolves[k]) {
-        throw { msg: 'Variable ' + k + ' is already defined' };
+        throw new Error('Variable ' + k + ' is already defined');
       }
       resolves[k] = mod.exports[k];
       notresolved = notresolved.filter((item) => item !== k);
@@ -253,6 +253,8 @@ export const linkModules = (data, modules, library) => {
 
   for (const mod of modules) {
     // take each module and check externs/exports
+    // TODO: Should this resolveModule(k)???
+    // eslint-disable-next-line no-unused-vars
     for (const k in mod.exports) {
       resolveModule(mod);
     }
@@ -265,7 +267,7 @@ export const linkModules = (data, modules, library) => {
       // add module to the module list
       modules.push(mod);
     } else {
-      throw { msg: 'PASS1 Unresolved external ' + name };
+      throw new Error('PASS1 Unresolved external ' + name);
     }
   }
 
@@ -335,7 +337,7 @@ export const linkModules = (data, modules, library) => {
       if (resolves[s.ext]) {
         s.resolved = resolves[s.ext].addr;
       } else {
-        throw { msg: 'Unresolved external ' + s.ext };
+        throw new Error('Unresolved external ' + s.ext);
       }
     }
   }
@@ -377,11 +379,11 @@ export const linkModules = (data, modules, library) => {
 
   return {
     // notresolved,
-    CSEG,
-    DSEG,
-    ESEG,
-    BSSEG,
-    seglen,
+    CSEG: CSEG,
+    DSEG: DSEG,
+    ESEG: ESEG,
+    BSSEG: BSSEG,
+    seglen: seglen,
     entry: resolves[entrypoint],
     dump: out,
 

@@ -15,7 +15,7 @@ QUnit.module('asm');
 
 const asmREL = fs.readFileSync('./test/suite/relocable.a80', 'utf-8');
 const asmREL1 = fs.readFileSync('./test/suite/relocable1.a80', 'utf-8');
-const asmREL2 = fs.readFileSync('./test/suite/relocable2.a80', 'utf-8');
+// const asmREL2 = fs.readFileSync('./test/suite/relocable2.a80', 'utf-8');
 const asmLNK = JSON.parse(fs.readFileSync('./test/suite/relocable.lnk', 'utf-8'));
 
 /*
@@ -186,8 +186,8 @@ QUnit.test('hex2', async assert => {
   // fileSystem.writeFile("tinybasic.a80.obj", JSON.stringify(result,null,2))
   assert.ok(typeof result.dump === 'object');
   const hex = ihex(result);
-  const srec = isrec(result);
-  const srec28 = isrec28(result);
+  isrec(result);
+  isrec28(result);
   await fileSystem.writeFile('tinybasic.a80.hex', hex);
   // check
   const hexmaster = await fileSystem.readFile('tinybasic.a80.master.hex');

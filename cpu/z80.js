@@ -6,7 +6,7 @@ export const Z80 = {
     // 0 nebo 1 parametr
     //         0     1     2       3      4      5     6       7      8      9     10    11     12    13
     //         0 /  /A,r/ A,N /   R8  /   N   / R16 / R16A /  POP   COND /  IMM /  RST /  REL  / ABS / (HL)
-    //		ADC: [    -1,    -1,  0x88,  0xce,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1],
+    // ADC: [    -1,    -1,  0x88,  0xce,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1],
     DEC: [-1, -1, -1, -1, 0x05, -1, 0x0b, -1, -1, -1, -1, -1, -1, -1],
     INC: [-1, -1, -1, -1, 0x04, -1, 0x03, -1, -1, -1, -1, -1, -1, -1],
     AND: [-1, -1, -1, -1, 0xA0, 0xe6, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -103,7 +103,7 @@ export const Z80 = {
   parseOpcode: function (s, vars, Parser) {
     const R8 = function (reg) {
       const n = ['B', 'C', 'D', 'E', 'H', 'L', '~', 'A'].indexOf(reg.toUpperCase());
-      if (reg.toUpperCase() == '(HL)') return 6;
+      if (reg.toUpperCase() === '(HL)') return 6;
       return n;
     };
     const R8F = function (reg) {
@@ -130,7 +130,7 @@ export const Z80 = {
       return n;
     };
     const LINK = function (par) {
-      if (par[0] == '(' && par[par.length - 1] == ')') {
+      if (par[0] === '(' && par[par.length - 1] === ')') {
         return par.substr(1, par.length - 2);
       } else return null;
     };
@@ -140,57 +140,57 @@ export const Z80 = {
       let prefix = null;
       const idx = par.replace(/\s/g, '').substr(0, 4).toUpperCase();
 
-      if (idx == '(IX)') {
+      if (idx === '(IX)') {
         disp = '0';
         prefix = 0xdd;
         par = '(HL)';
       }
-      if (idx == '(IX+') {
+      if (idx === '(IX+') {
         disp = par.substr(4, par.length - 5);
         prefix = 0xdd;
         par = '(HL)';
       }
-      if (idx == '(IX-') {
+      if (idx === '(IX-') {
         disp = '-' + par.substr(4, par.length - 5);
         prefix = 0xdd;
         par = '(HL)';
       }
-      if (idx == '(IY)') {
+      if (idx === '(IY)') {
         disp = '0';
         prefix = 0xfd;
         par = '(HL)';
       }
-      if (idx == '(IY+') {
+      if (idx === '(IY+') {
         disp = par.substr(4, par.length - 5);
         prefix = 0xfd;
         par = '(HL)';
       }
-      if (idx == '(IY-') {
+      if (idx === '(IY-') {
         disp = '-' + par.substr(4, par.length - 5);
         prefix = 0xfd;
         par = '(HL)';
       }
-      if (idx == 'IX') {
+      if (idx === 'IX') {
         prefix = 0xdd;
         par = 'HL';
       }
-      if (idx == 'IY') {
+      if (idx === 'IY') {
         prefix = 0xFd;
         par = 'HL';
       }
-      if (idx == 'IXL') {
+      if (idx === 'IXL') {
         prefix = 0xdd;
         par = 'L';
       }
-      if (idx == 'IXH') {
+      if (idx === 'IXH') {
         prefix = 0xdd;
         par = 'H';
       }
-      if (idx == 'IYL') {
+      if (idx === 'IYL') {
         prefix = 0xFd;
         par = 'L';
       }
-      if (idx == 'IYH') {
+      if (idx === 'IYH') {
         prefix = 0xFd;
         par = 'H';
       }
@@ -206,14 +206,16 @@ export const Z80 = {
 
     if (ax && !ax2) {
       if ((s.params ? s.params.length : 0) > 1) {
-        if (s.opcode !== 'JP' && s.opcode !== 'JR' && s.opcode !== 'CALL') { throw 'One parameter needed'; }
+        if (s.opcode !== 'JP' && s.opcode !== 'JR' && s.opcode !== 'CALL') {
+          throw new Error('One parameter needed');
+        }
       }
     }
 
     if (!ax && ax2) {
       ax = ax2;
       if ((s.params ? s.params.length : 0) !== 2) {
-        throw 'Two parameters needed';
+        throw new Error('Two parameters needed');
       }
     }
 
@@ -223,7 +225,7 @@ export const Z80 = {
       if (!s.params || s.params.length === 0) {
         // no parameters
         op = ax[0];
-      } else if (s.params.length == 1) {
+      } else if (s.params.length === 1) {
         let par = s.params[0];
         idx = indexes(par);
         par = idx[0];
@@ -238,8 +240,9 @@ export const Z80 = {
             const lab = Parser.evaluate(par, vars);
             const pc = vars._PC + 2;
             let disp = lab - pc;
-            if (disp > 127) throw 'Target is out of relative jump reach';
-            if (disp < -128) throw 'Target is out of relative jump reach';
+            if (disp > 127 || disp < -128) {
+              throw new Error('Target is out of relative jump reach');
+            }
             if (disp < 0) { disp = 256 + disp; }
             return disp;
           };
@@ -249,7 +252,7 @@ export const Z80 = {
         if (ax[12] > 0) {
           // abs jump
           s.lens = [];
-          if (par.toUpperCase() == '(HL)' && ax[13] > 0) {
+          if (par.toUpperCase() === '(HL)' && ax[13] > 0) {
             if (!idx[2]) {
               s.bytes = 1;
               s.lens[0] = ax[13];
@@ -291,7 +294,7 @@ export const Z80 = {
           case 1: s.lens[1] = 0x56; return s;
           case 2: s.lens[1] = 0x5e; return s;
           }
-          throw 'Invalid interrupt mode';
+          throw new Error('Invalid interrupt mode');
         }
         if (ax[10] > 0) {
           // RST x
@@ -308,7 +311,7 @@ export const Z80 = {
           case 0x30: s.lens[0] = 0xf7; return s;
           case 0x38: s.lens[0] = 0xff; return s;
           }
-          throw 'Invalid RST';
+          throw new Error('Invalid RST');
         }
 
         reg = COND(par);
@@ -361,7 +364,7 @@ export const Z80 = {
             }
           }
         }
-      } else if (s.params.length == 2) {
+      } else if (s.params.length === 2) {
         let par1 = s.params[0];
         let par2 = s.params[1];
         // var idx;
@@ -371,28 +374,28 @@ export const Z80 = {
         // speciality
 
         // instrukce EX
-        if (s.opcode == 'EX') {
-          if (par1.toUpperCase() == 'DE' && par2.toUpperCase() == 'HL') {
+        if (s.opcode === 'EX') {
+          if (par1.toUpperCase() === 'DE' && par2.toUpperCase() === 'HL') {
             s.lens = [0xeb];
             s.bytes = 1;
             return s;
           }
-          if (par1.toUpperCase() == 'AF' && par2.toUpperCase() == "AF'") {
+          if (par1.toUpperCase() === 'AF' && par2.toUpperCase() === "AF'") {
             s.lens = [0x08];
             s.bytes = 1;
             return s;
           }
-          if (par1.toUpperCase() == '(SP)' && par2.toUpperCase() == 'HL') {
+          if (par1.toUpperCase() === '(SP)' && par2.toUpperCase() === 'HL') {
             s.lens = [0xe3];
             s.bytes = 1;
             return s;
           }
-          if (par1.toUpperCase() == '(SP)' && par2.toUpperCase() == 'IX') {
+          if (par1.toUpperCase() === '(SP)' && par2.toUpperCase() === 'IX') {
             s.lens = [0xdd, 0xe3];
             s.bytes = 2;
             return s;
           }
-          if (par1.toUpperCase() == '(SP)' && par2.toUpperCase() == 'IY') {
+          if (par1.toUpperCase() === '(SP)' && par2.toUpperCase() === 'IY') {
             s.lens = [0xfd, 0xe3];
             s.bytes = 2;
             return s;
@@ -400,7 +403,7 @@ export const Z80 = {
 
           return null;
         }
-        if (s.opcode == 'CALL') {
+        if (s.opcode === 'CALL') {
           ax = Z80.set2.CAL2;
           reg = COND(par1);
           if (reg >= 0 && ax[5] > 0) {
@@ -417,7 +420,7 @@ export const Z80 = {
           }
           return null;
         }
-        if (s.opcode == 'JP') {
+        if (s.opcode === 'JP') {
           ax = Z80.set2.JP2;
           reg = COND(par1);
           if (reg >= 0 && ax[5] > 0) {
@@ -434,7 +437,7 @@ export const Z80 = {
           }
           return null;
         }
-        if (s.opcode == 'JR') {
+        if (s.opcode === 'JR') {
           ax = Z80.set2.JR2;
           reg = COND(par1);
           if (reg >= 0 && reg < 4 && ax[5] > 0) {
@@ -448,8 +451,12 @@ export const Z80 = {
                 const lab = Parser.evaluate(par2, vars);
                 const pc = vars._PC + 2;
                 let disp = lab - pc;
-                if (disp > 127) throw 'Target is out of relative jump reach';
-                if (disp < -128) throw 'Target is out of relative jump reach';
+                if (disp > 127) {
+                  throw new Error('Target is out of relative jump reach');
+                }
+                if (disp < -128) {
+                  throw new Error('Target is out of relative jump reach');
+                }
                 if (disp < 0) { disp = 256 + disp; }
                 return disp;
               };
@@ -459,8 +466,8 @@ export const Z80 = {
           return null;
         }
 
-        if (s.opcode == 'IN') {
-          if (par2.toUpperCase() == '(C)') {
+        if (s.opcode === 'IN') {
+          if (par2.toUpperCase() === '(C)') {
             reg = R8F(par1);
             if (reg >= 0 && ax[0]) {
               s.lens = [0xed, 0x40 + (reg << 3)];
@@ -468,7 +475,7 @@ export const Z80 = {
               return s;
             }
           }
-          if (par1.toUpperCase() == 'A') {
+          if (par1.toUpperCase() === 'A') {
             s.lens = [ax[1]];
             s.lens[1] = function (vars) { return Parser.evaluate(par2, vars); };
             s.bytes = 2;
@@ -476,8 +483,8 @@ export const Z80 = {
           }
           return null;
         }
-        if (s.opcode == 'OUT') {
-          if (par1.toUpperCase() == '(C)') {
+        if (s.opcode === 'OUT') {
+          if (par1.toUpperCase() === '(C)') {
             reg = R8F(par2);
             if (reg >= 0 && ax[0]) {
               s.lens = [0xed, 0x41 + (reg << 3)];
@@ -485,7 +492,7 @@ export const Z80 = {
               return s;
             }
           }
-          if (par2.toUpperCase() == 'A') {
+          if (par2.toUpperCase() === 'A') {
             s.lens = [ax[1]];
             s.lens[1] = function (vars) { return Parser.evaluate(par1, vars); };
             s.bytes = 2;
@@ -494,48 +501,48 @@ export const Z80 = {
           return null;
         }
 
-        if (s.opcode == 'LD') {
+        if (s.opcode === 'LD') {
           // MASAKR
           //
 
-          if (par1.toUpperCase() == 'A' && par2.toUpperCase() == 'R') {
+          if (par1.toUpperCase() === 'A' && par2.toUpperCase() === 'R') {
             s.bytes = 2;
             s.lens = [0xed, 0x5f];
             return s;
           }
-          if (par1.toUpperCase() == 'A' && par2.toUpperCase() == 'I') {
+          if (par1.toUpperCase() === 'A' && par2.toUpperCase() === 'I') {
             s.bytes = 2;
             s.lens = [0xed, 0x57];
             return s;
           }
-          if (par1.toUpperCase() == 'R' && par2.toUpperCase() == 'A') {
+          if (par1.toUpperCase() === 'R' && par2.toUpperCase() === 'A') {
             s.bytes = 2;
             s.lens = [0xed, 0x4f];
             return s;
           }
-          if (par1.toUpperCase() == 'I' && par2.toUpperCase() == 'A') {
+          if (par1.toUpperCase() === 'I' && par2.toUpperCase() === 'A') {
             s.bytes = 2;
             s.lens = [0xed, 0x47];
             return s;
           }
 
           // Syntaktic sugar
-          if (par1.toUpperCase() == 'HL' && par2.toUpperCase() == 'DE') {
+          if (par1.toUpperCase() === 'HL' && par2.toUpperCase() === 'DE') {
             s.bytes = 2; s.lens = [0x62, 0x6b]; return s;
           }
-          if (par1.toUpperCase() == 'HL' && par2.toUpperCase() == 'BC') {
+          if (par1.toUpperCase() === 'HL' && par2.toUpperCase() === 'BC') {
             s.bytes = 2; s.lens = [0x60, 0x69]; return s;
           }
-          if (par1.toUpperCase() == 'DE' && par2.toUpperCase() == 'HL') {
+          if (par1.toUpperCase() === 'DE' && par2.toUpperCase() === 'HL') {
             s.bytes = 2; s.lens = [0x54, 0x5d]; return s;
           }
-          if (par1.toUpperCase() == 'DE' && par2.toUpperCase() == 'BC') {
+          if (par1.toUpperCase() === 'DE' && par2.toUpperCase() === 'BC') {
             s.bytes = 2; s.lens = [0x50, 0x59]; return s;
           }
-          if (par1.toUpperCase() == 'BC' && par2.toUpperCase() == 'HL') {
+          if (par1.toUpperCase() === 'BC' && par2.toUpperCase() === 'HL') {
             s.bytes = 2; s.lens = [0x44, 0x4d]; return s;
           }
-          if (par1.toUpperCase() == 'BC' && par2.toUpperCase() == 'DE') {
+          if (par1.toUpperCase() === 'BC' && par2.toUpperCase() === 'DE') {
             s.bytes = 2; s.lens = [0x42, 0x4b]; return s;
           }
 
@@ -545,9 +552,13 @@ export const Z80 = {
           prefix = idx1[2];
           const idx2 = indexes(par2);
           par2 = idx2[0];
-          if (idx2[1] && disp) { throw 'Invalid parameters - two indexed'; }
+          if (idx2[1] && disp) {
+            throw new Error('Invalid parameters - two indexed');
+          }
           if (idx2[1]) disp = idx2[1];
-          if (idx2[2] && prefix) { throw 'Invalid parameters - two prefixed'; }
+          if (idx2[2] && prefix) {
+            throw new Error('Invalid parameters - two prefixed');
+          }
           if (idx2[2]) prefix = idx2[2];
           let reg1 = R8(par1);
           let reg2 = R8(par2);
@@ -558,29 +569,29 @@ export const Z80 = {
             s.bytes = 1;
             lens[0] = 0x40 + (reg1 << 3) + reg2;
           }
-          if (par1.toUpperCase() == 'A' && par2.toUpperCase() == '(BC)') {
+          if (par1.toUpperCase() === 'A' && par2.toUpperCase() === '(BC)') {
             s.bytes = 1; s.lens = [0x0a]; return s;
           }
-          if (par1.toUpperCase() == 'A' && par2.toUpperCase() == '(DE)') {
+          if (par1.toUpperCase() === 'A' && par2.toUpperCase() === '(DE)') {
             s.bytes = 1; s.lens = [0x1a]; return s;
           }
-          if (par1.toUpperCase() == 'A' && LINK(par2) && s.bytes === 0) {
+          if (par1.toUpperCase() === 'A' && LINK(par2) && s.bytes === 0) {
             s.bytes = 3; s.lens = [0x3a, function (vars) { return Parser.evaluate(LINK(par2), vars); }, null]; return s;
           }
-          if (par1.toUpperCase() == '(BC)' && par2.toUpperCase() == 'A') {
+          if (par1.toUpperCase() === '(BC)' && par2.toUpperCase() === 'A') {
             s.bytes = 1; s.lens = [0x02]; return s;
           }
-          if (par1.toUpperCase() == '(DE)' && par2.toUpperCase() == 'A') {
+          if (par1.toUpperCase() === '(DE)' && par2.toUpperCase() === 'A') {
             s.bytes = 1; s.lens = [0x12]; return s;
           }
-          if (LINK(par1) && par2.toUpperCase() == 'A' && s.bytes === 0) {
+          if (LINK(par1) && par2.toUpperCase() === 'A' && s.bytes === 0) {
             s.bytes = 3; s.lens = [0x32, function (vars) { return Parser.evaluate(LINK(par1), vars); }, null]; return s;
           }
 
           // FIX 6.4.2015 - LD A,(0123)
           //
 
-          if (reg1 == 7 && reg2 < 0 && par2[0] == '(') {
+          if (reg1 === 7 && reg2 < 0 && par2[0] === '(') {
             s.bytes = 3;
             lens[0] = 0x3a;
             lens[1] = function (vars) { return Parser.evaluate(par2, vars); };
@@ -588,9 +599,9 @@ export const Z80 = {
             return s;
           }
 
-          if (reg1 >= 0 && reg2 < 0 && par2[0] == '(') {
+          if (reg1 >= 0 && reg2 < 0 && par2[0] === '(') {
             // ld c,(1234)
-            throw 'Invalid combination: general register and memory';
+            throw new Error('Invalid combination: general register and memory');
           }
 
           if (reg1 >= 0 && reg2 < 0) {
@@ -616,7 +627,7 @@ export const Z80 = {
               s.bytes = ([4, 4, 3, 4])[reg1];
               lens = [0xed, 0x4b + (reg1 << 4), function (vars) { return Parser.evaluate(link2, vars); }, null];
               s.wia = 2; // Where is address (for relocation)
-              if (s.bytes == 3) {
+              if (s.bytes === 3) {
                 s.wia = 1; // Where is address (for relocation)
                 lens = [0x2a, function (vars) { return Parser.evaluate(link2, vars); }, null];
               }
@@ -626,14 +637,14 @@ export const Z80 = {
               s.bytes = ([4, 4, 3, 4])[reg2];
               s.wia = 2; // Where is address (for relocation)
               lens = [0xed, 0x43 + (reg2 << 4), function (vars) { return Parser.evaluate(link1, vars); }, null];
-              if (s.bytes == 3) {
+              if (s.bytes === 3) {
                 s.wia = 1; // Where is address (for relocation)
                 lens = [0x22, function (vars) { return Parser.evaluate(link1, vars); }, null];
               }
               // return s;
             }
 
-            if (reg1 == 3 && reg2 == 2) {
+            if (reg1 === 3 && reg2 === 2) {
               s.bytes = 1;
               lens = [0xf9];
             }
@@ -646,14 +657,26 @@ export const Z80 = {
             s.bytes++;
           }
           if (disp) {
-            if (s.bytes == 3) {
+            if (s.bytes === 3) {
               lens[3] = lens[2];
-              lens[2] = function (vars) { const d = Parser.evaluate(disp, vars); if (d > 127 || d < -128) throw 'Index out of range (' + d + ')'; return d; };
+              lens[2] = function (vars) {
+                const d = Parser.evaluate(disp, vars);
+                if (d > 127 || d < -128) {
+                  throw new Error('Index out of range (' + d + ')');
+                }
+                return d;
+              };
               s.bytes = 4;
             }
-            if (s.bytes == 2) {
+            if (s.bytes === 2) {
               // lens[2] = Parser.evaluate(disp,vars);
-              lens[2] = function (vars) { const d = Parser.evaluate(disp, vars); if (d > 127 || d < -128) throw 'Index out of range (' + d + ')'; return d; };
+              lens[2] = function (vars) {
+                const d = Parser.evaluate(disp, vars);
+                if (d > 127 || d < -128) {
+                  throw new Error('Index out of range (' + d + ')');
+                }
+                return d;
+              };
               s.bytes = 3;
             }
           }
@@ -673,7 +696,7 @@ export const Z80 = {
           op = ax[4] + (8 * bit) + reg;
         }
 
-        if (par1.toUpperCase() == 'A') {
+        if (par1.toUpperCase() === 'A') {
           // INS A,xxx
           idx = indexes(par2);
           par2 = idx[0];
@@ -689,14 +712,14 @@ export const Z80 = {
             param8 = function (vars) { return Parser.evaluate(par2, vars); };
           }
         }
-        if (par1.toUpperCase() == 'IX') {
+        if (par1.toUpperCase() === 'IX') {
           // XX,r16 (<<4)
           if ((reg = R16IX(par2)) >= 0) {
             op = ax[2] + (reg << 4);
             prefix = 0xdd;
           }
         }
-        if (par1.toUpperCase() == 'IY') {
+        if (par1.toUpperCase() === 'IY') {
           // XX,r16 (<<4)
           if ((reg = R16IY(par2)) >= 0) {
             op = ax[2] + (reg << 4);
@@ -704,7 +727,7 @@ export const Z80 = {
           }
         }
 
-        if (par1.toUpperCase() == 'HL') {
+        if (par1.toUpperCase() === 'HL') {
           // HL,r16 (<<4)
           if ((reg = R16(par2)) >= 0) {
             op = ax[2] + (reg << 4);
@@ -712,7 +735,9 @@ export const Z80 = {
         }
       }
 
-      if (op < 0) { throw 'Bad addressing mode at line ' + s.numline; }
+      if (op < 0) {
+        throw new Error('Bad addressing mode at line ' + s.numline);
+      }
       if (op > 255) {
         // prefixed
         bytes++;
@@ -722,6 +747,7 @@ export const Z80 = {
         lens[0] = (op & 0xff);
       }
 
+      /*
       const safeparse = function (d) {
         try {
           if (!vars) vars = {};
@@ -731,6 +757,7 @@ export const Z80 = {
           return null;
         }
       };
+      */
       // console.log(lens, bytes, prefix,disp)
 
       if (prefix) {
@@ -738,15 +765,27 @@ export const Z80 = {
         bytes++;
       }
       if (disp !== null && disp !== undefined) {
-        if (bytes == 3) {
+        if (bytes === 3) {
           lens[3] = lens[2];
           // lens[2] = safeparse(disp);
-          lens[2] = (vars) => { const d = Parser.evaluate(disp, vars); if (d > 127 || d < -128) throw 'Index out of range (' + d + ')'; return d; };
+          lens[2] = (vars) => {
+            const d = Parser.evaluate(disp, vars);
+            if (d > 127 || d < -128) {
+              throw new Error('Index out of range (' + d + ')');
+            }
+            return d;
+          };
           bytes = 4;
         }
-        if (bytes == 2) {
+        if (bytes === 2) {
           //          lens[2] = safeparse(disp);
-          lens[2] = (vars) => { const d = Parser.evaluate(disp, vars); if (d > 127 || d < -128) throw 'Index out of range (' + d + ')'; return d; };
+          lens[2] = (vars) => {
+            const d = Parser.evaluate(disp, vars);
+            if (d > 127 || d < -128) {
+              throw new Error('Index out of range (' + d + ')');
+            }
+            return d;
+          };
           bytes = 3;
         }
       }

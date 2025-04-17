@@ -148,9 +148,9 @@ export const M6800 = {
     if (!s.opcode) return null;
     // console.log(s,s.params, s.opcode)
 
-    if (s.params && auxopcode.length == 3) {
-      if (s.params[0] == 'A' || s.params[0] == 'B') {
-        if ((s.params[0].indexOf(' ') == 1) || (s.params[0].length == 1)) {
+    if (s.params && auxopcode.length === 3) {
+      if (s.params[0] === 'A' || s.params[0] === 'B') {
+        if ((s.params[0].indexOf(' ') === 1) || (s.params[0].length === 1)) {
           const p0 = s.params[0] + '';
           s.reg6800 = p0.substr(0, 1).toUpperCase();
           s.params[0] = p0.substr(2).trim();
@@ -203,7 +203,7 @@ export const M6800 = {
           return s;
         }
 
-        if (p1[0] == '#' && o2 > -1) {
+        if (p1[0] === '#' && o2 > -1) {
           // IMM3
           s.lens[0] = o2;
           s.lens[1] = function (vars) { return Parser.evaluate(p1.substr(1), vars); };
@@ -211,7 +211,7 @@ export const M6800 = {
           s.bytes = 3;
           return s;
         }
-        if (p1[0] == '#' && o5 > -1) {
+        if (p1[0] === '#' && o5 > -1) {
           // IMM
           s.lens[0] = o5;
           s.lens[1] = function (vars) { return Parser.evaluate(p1.substr(1), vars); };
@@ -247,7 +247,7 @@ export const M6800 = {
 
       // 2 parms
       if (ax[4] > -1) {
-        if (s.params[1].toUpperCase() == 'X') {
+        if (s.params[1].toUpperCase() === 'X') {
           s.lens[0] = ax[4];
           s.lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
           s.bytes = 2;

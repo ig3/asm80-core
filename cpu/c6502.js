@@ -143,7 +143,7 @@ export const C6502 = {
 
   parseOpcode: function (s, vars, Parser) {
     const ax = C6502.set[s.opcode];
-    let addr, p1, p2, ins, lens, zptest;
+    let addr, p1, p2, lens, zptest;
     if (ax) {
       lens = [];
       // addr decision
@@ -155,11 +155,10 @@ export const C6502 = {
         addr = 0; // imp
         if (ax[0] === -1) addr = 1;
         // console.log(s.opcode,addr)
-      } // implied
-
-      else if (s.params.length == 1 && s.params[0].toUpperCase() === 'A') {
+        // implied
+      } else if (s.params.length === 1 && s.params[0].toUpperCase() === 'A') {
         addr = 1;
-      } else if (s.params.length == 1) {
+      } else if (s.params.length === 1) {
         p1 = s.params[0];
         addr = 3; // abs
         if (p1 === 'A') { addr = 1; }
@@ -197,7 +196,7 @@ export const C6502 = {
           p1 = p1.substr(1, p1.length - 2);
           // s.params[0] = p1;
           lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
-          if (addr == 9) lens[2] = null;
+          if (addr === 9) lens[2] = null;
         }
         if (p1.match(/^\$[0-9a-f]{1,2}$/i) && ax[6] >= 0 && addr !== 13) {
           addr = 6; // zero page hack
@@ -206,7 +205,7 @@ export const C6502 = {
 
         if (addr === 3) {
           // maybe 12?
-          if (ax[3] == -1 && ax[12]) {
+          if (ax[3] === -1 && ax[12]) {
             addr = 12;
             lens[1] = function (vars) {
               let n = Parser.evaluate(p1, vars) - vars._PC - 2;
@@ -218,7 +217,7 @@ export const C6502 = {
             lens[2] = null;
           }
         }
-      } else if (s.params.length == 2) {
+      } else if (s.params.length === 2) {
         p1 = s.params[0];
         zptest = null;
         if (vars) {
@@ -243,22 +242,7 @@ export const C6502 = {
         } else if (zptest !== null && zptest < 0x100 && (ax[7] >= 0 && p2 === 'X') && p1[0] !== '(') {
           if (p2 === 'X' && p1[0] !== '(') { addr = 7; }
           lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
-        }
-        /*
-        else if (ax[4]<0 && p2 === 'X' && (ax[7]>=0)) {
-          //maybe obsolete, never reached
-          addr = 7;
-          lens[1] = function(vars){return Parser.evaluate(p1,vars);};
-        } */
-
-        /*
-        else if (zptest!==null && zptest<0x100 && (ax[8]>=0 && p2 === 'Y')  && p1[0] !== '(') {
-          //maybe obsolete, never reached
-          if (p2 === 'Y' && p1[0] !== '(') {addr = 8;}
-          lens[1] = function(vars){return Parser.evaluate(p1,vars);};
-        }
-        */
-        else {
+        } else {
           if (p2 === 'X') {
             addr = 4;
             lens[1] = function (vars) { return Parser.evaluate(p1, vars); };
@@ -281,7 +265,7 @@ export const C6502 = {
             // p1 = p1.substr(1);
             // s.params[0] = p1;
             lens[1] = function (vars) { return Parser.evaluate(p1.substr(1), vars); };
-            if (addr == 14) lens[2] = null;
+            if (addr === 14) lens[2] = null;
           }
         }
       }
@@ -289,13 +273,13 @@ export const C6502 = {
       // console.log(p1,p2,addr);
 
       if (addr === undefined) {
-        throw 'Bad addressing mode at line ' + s.numline;
+        throw new Error('Bad addressing mode at line ' + s.numline);
       }
 
       lens[0] = ax[addr];
 
-      if (lens[0] === null || lens[0] == '-1') {
-        throw 'Bad addressing mode at line ' + s.numline;
+      if (lens[0] === null || lens[0] === '-1') {
+        throw new Error('Bad addressing mode at line ' + s.numline);
       }
 
       s.admode = addr;

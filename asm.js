@@ -16,13 +16,23 @@ const cpus = [I8080, M6800, M6809, C6502, Z80];
 
 export const compile = async (source, fileSystem, opts = { assembler: null }, filename = 'noname') => {
   if (!opts.assembler) {
-    throw { msg: 'No assembler specified', s: 'Assembler error' };
+    throw new Error(
+      'No assembler specified',
+      {
+        cause: 'Assembler error'
+      }
+    );
   }
 
   if (typeof opts.assembler === 'string') {
-    const assembler = cpus.find(x => x.cpu.toUpperCase() == opts.assembler.toUpperCase());
+    const assembler = cpus.find(x => x.cpu.toUpperCase() === opts.assembler.toUpperCase());
     if (typeof assembler !== 'object') {
-      throw { msg: 'No assembler for: ' + opts.assembler, s: 'Assembler error' };
+      throw new Error(
+        'No assembler for: ' + opts.assembler,
+        {
+          cause: 'Assembler error'
+        }
+      );
     }
     opts.assembler = assembler;
   }
@@ -30,7 +40,6 @@ export const compile = async (source, fileSystem, opts = { assembler: null }, fi
   opts = {
     ...opts,
     readFile: fileSystem.readFile,
-    endian: false,
     ENT: null,
     BINFROM: null,
     BINTO: null,
@@ -73,7 +82,7 @@ export const compile = async (source, fileSystem, opts = { assembler: null }, fi
     // is it a module?
 
     const vars = metacode[1];
-    if (vars && typeof vars.__PRAGMAS !== 'undefined' && vars.__PRAGMAS.indexOf('MODULE') != -1) {
+    if (vars && typeof vars.__PRAGMAS !== 'undefined' && vars.__PRAGMAS.indexOf('MODULE') !== -1) {
       const obj = objCode(metacode[0], metacode[1], opts, filename);
       out.obj = obj;
     }
@@ -109,23 +118,22 @@ export const compile = async (source, fileSystem, opts = { assembler: null }, fi
 
     // no message, so we use the general one
     if (!e.msg) {
-      throw {
-        error:
-            {
-              msg: `Cannot evaluate line ${opts.WLINE.numline}, there is some unspecified error (e.g. reserved world as label etc.)`,
-              wline: opts.WLINE
-            }
-      };
+      throw new Error(
+        `Cannot evaluate line ${opts.WLINE.numline}, there is some unspecified error (e.g. reserved world as label etc.)`,
+        {
+          cause: opts.WLINE
+        }
+      );
     }
     if (!e.s) e.s = s;
 
-    throw {
-      error: {
-        msg: e.msg,
-        s: e.s,
+    throw new Error(
+      e.msg,
+      {
+        cause: e
         // wline: opts.WLINE
       }
-    };
+    );
   }
 };
 
@@ -150,15 +158,43 @@ const link = async (linkList, fileSystem, name = 'noname') => {
     const f = JSON.parse(await fileSystem.readFile(m + '.obj'));
     // checker
     if (!cpu) cpu = f.cpu;
-    if (cpu != f.cpu) throw { msg: 'Different CPU in module ' + m, s: 'Linker error' };
+    if (cpu !== f.cpu) {
+      throw new Error(
+        'Different CPU in module ' + m,
+        {
+          cause: 'Linker error'
+        }
+      );
+    }
     if (!endian) endian = f.endian;
-    if (endian != f.endian) throw { msg: 'Different endian in module ' + m, s: 'Linker error' };
+    if (endian !== f.endian) {
+      throw new Error(
+        'Different endian in module ' + m,
+        {
+          cause: 'Linker error'
+        }
+      );
+    }
     return f;
   }));
   const library = await Promise.all(linkList.library.map(async m => {
     const f = JSON.parse(await fileSystem.readFile(m + '.obj'));
-    if (cpu != f.cpu) throw { msg: 'Different CPU in library file ' + m, s: 'Linker error' };
-    if (endian != f.endian) throw { msg: 'Different endian in library file ' + m, s: 'Linker error' };
+    if (cpu !== f.cpu) {
+      throw new Error(
+        'Different CPU in library file ' + m,
+        {
+          cause: 'Linker error'
+        }
+      );
+    }
+    if (endian !== f.endian) {
+      throw new Error(
+        'Different endian in library file ' + m,
+        {
+          cause: 'Linker error'
+        }
+      );
+    }
     return f;
   }));
 
