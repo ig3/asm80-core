@@ -2,7 +2,7 @@ export const fptozx = (num, simpleint) => {
   simpleint = simpleint === undefined ? true : simpleint;
   const sgn = num < 0;
   let m = sgn ? -num : num;
-  if (simpleint && num == Math.floor(num) && num >= -65535 && num <= 65535) {
+  if (simpleint && num === Math.floor(num) && num >= -65535 && num <= 65535) {
     m = sgn ? 65536 + num : num;
     return [0, sgn ? 0xff : 0, m & 0xff, (m >> 8) & 0xff, 0];
   }
@@ -19,7 +19,7 @@ export const fptozx = (num, simpleint) => {
       if (sgn && i === 0) bit = '1';
       if (!sgn && i === 0) bit = '0';
       out += bit;
-      if (i % 8 == 7) {
+      if (i % 8 === 7) {
         // console.log(parseInt(out,2))
         a.push(parseInt(out, 2));
         out = '';

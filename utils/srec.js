@@ -49,16 +49,16 @@ export const isrec = (result, segment) => {
     op = V[i];
 
     if (op.opcode === '.PRAGMA') {
-      if (op.params.length == 1 && op.params[0].toUpperCase() == 'SEGMENT') {
+      if (op.params.length === 1 && op.params[0].toUpperCase() === 'SEGMENT') {
         segments = true;
       }
     }
     if (op.ifskip) continue;
-    if (typeof op.segment !== 'undefined' && typeof segment !== 'undefined' && op.segment != segment) continue;
+    if (typeof op.segment !== 'undefined' && typeof segment !== 'undefined' && op.segment !== segment) continue;
 
     if (segments) {
       if (!segment) segment = 'CSEG';
-      if (op.segment != segment) continue;
+      if (op.segment !== segment) continue;
     }
 
     let opaddr = op.addr;
@@ -66,7 +66,7 @@ export const isrec = (result, segment) => {
     if (opaddr !== undefined && len === 0) {
       addr = opaddr;
     }
-    if (opaddr != addr + len) {
+    if (opaddr !== addr + len) {
       if (len) {
         // flush
         out += makeSrec(addr, dta);
@@ -137,7 +137,6 @@ const makeSrec28 = (addr, dta) => {
 
 export const isrec28 = (result, segment) => {
   const V = result.dump;
-  let ln;
   let op;
   let addr = null;
   let len = 0;
@@ -147,17 +146,17 @@ export const isrec28 = (result, segment) => {
   for (let i = 0, j = V.length; i < j; i++) {
     op = V[i];
     if (op.opcode === '.PRAGMA') {
-      if (op.params.length == 1 && op.params[0].toUpperCase() == 'SEGMENT') {
+      if (op.params.length === 1 && op.params[0].toUpperCase() === 'SEGMENT') {
         segments = true;
       }
     }
 
     if (op.ifskip) continue;
-    if (typeof op.segment !== 'undefined' && typeof segment !== 'undefined' && op.segment != segment) continue;
+    if (typeof op.segment !== 'undefined' && typeof segment !== 'undefined' && op.segment !== segment) continue;
 
     if (segments) {
       if (!segment) segment = 'CSEG';
-      if (op.segment != segment) continue;
+      if (op.segment !== segment) continue;
     }
 
     let opaddr = op.addr;
@@ -165,7 +164,7 @@ export const isrec28 = (result, segment) => {
     if (opaddr !== undefined && len === 0) {
       addr = opaddr;
     }
-    if (opaddr != addr + len) {
+    if (opaddr !== addr + len) {
       if (len) {
         // flush
         out += makeSrec28(addr, dta);

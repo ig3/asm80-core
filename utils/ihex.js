@@ -41,7 +41,6 @@ const makeHex = (addr, dta, linelen) => {
 
 export const ihex = (result, segment) => {
   const V = result.dump;
-  let ln;
   let op;
   let addr = null;
   let len = 0;
@@ -53,21 +52,21 @@ export const ihex = (result, segment) => {
     op = V[i];
     if (op.opcode === '.PRAGMA') {
       // hex len?
-      if (op.params.length == 2 && op.params[0].toUpperCase() == 'HEXLEN') {
+      if (op.params.length === 2 && op.params[0].toUpperCase() === 'HEXLEN') {
         ilen = parseInt(op.params[1]);
         if (ilen < 1 || ilen > 64) ilen = 16;
       }
-      if (op.params.length == 1 && op.params[0].toUpperCase() == 'SEGMENT') {
+      if (op.params.length === 1 && op.params[0].toUpperCase() === 'SEGMENT') {
         segments = true;
       }
     }
 
     if (op.ifskip) continue;
-    if (typeof op.segment !== 'undefined' && typeof segment !== 'undefined' && op.segment != segment) continue;
+    if (typeof op.segment !== 'undefined' && typeof segment !== 'undefined' && op.segment !== segment) continue;
 
     if (segments) {
       if (!segment) segment = 'CSEG';
-      if (op.segment != segment) continue;
+      if (op.segment !== segment) continue;
     }
 
     let opaddr = op.addr;
@@ -75,7 +74,7 @@ export const ihex = (result, segment) => {
     if (opaddr !== undefined && len === 0) {
       addr = opaddr;
     }
-    if (opaddr != addr + len) {
+    if (opaddr !== addr + len) {
       if (len) {
         // flush
         out += makeHex(addr, dta, ilen);
