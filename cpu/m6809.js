@@ -307,27 +307,23 @@ export const M6809 = {
         }
 
         const opcode = opcodes[opcodesIndex];
+        line.bytes = 0;
+        line.lens = [];
         if (opcode > 255) {
-          line.lens = [opcode >> 8, 255 & opcode, evalFunction];
+          line.lens[line.bytes++] = opcode >> 8;
+          line.lens[line.bytes++] = 0xff & opcode;
+          line.lens[line.bytes++] = evalFunction;
         } else {
-          line.lens = [opcode, evalFunction];
+          line.lens[line.bytes++] = opcode;
+          line.lens[line.bytes++] = evalFunction;
         }
-        line.bytes += (opcode > 255 ? 2 : 1);
-        if (opcodesIndex === 1) {
-          line.bytes++;
-        } else if (opcodesIndex === 3) {
-          line.bytes += 2;
-          line.lens[line.bytes - 1] = null;
-        } else if (opcodesIndex === 4) {
-          line.bytes++;
-        } else if (opcodesIndex === 5) {
-          line.bytes++;
-        } else if (opcodesIndex === 6) {
-          line.bytes += 2;
-          line.lens[line.bytes - 1] = null;
-        } else if (opcodesIndex === 7) {
-          line.bytes += 2;
-          line.lens[line.bytes - 1] = null;
+
+        if (
+          opcodesIndex === 3 ||
+          opcodesIndex === 6 ||
+          opcodesIndex === 7
+        ) {
+          line.lens[line.bytes++] = null;
         }
         return line;
       }
@@ -499,5 +495,5 @@ export const M6809 = {
       return line;
     }
     return null;
-  },
+  }
 };
