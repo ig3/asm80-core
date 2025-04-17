@@ -454,6 +454,7 @@ export const M6809 = {
         term = null;
       }
       if (
+        term !== null &&
         term > 0xFFEF &&
         term < 0x10000 &&
         registerOrPCBits(param2) !== 4 &&
@@ -467,6 +468,7 @@ export const M6809 = {
         line.lens[line.bytes++] =
           registerBits(param2) | 32 - (65536 - term) & 31;
       } else if (
+        term !== null &&
         term < 16 &&
         term > -17 &&
         registerOrPCBits(param2) !== 4 &&
@@ -484,6 +486,13 @@ export const M6809 = {
         line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
         line.lens[line.bytes++] = term >> 8;
         line.lens[line.bytes++] = 0xFF & term;
+      } else if (term === null) {
+        // Unresolved term, could end up being 16bit
+        line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
+        line.lens[line.bytes++] = function (e) {
+            return Parser.evaluate(param1, e);
+        };
+        line.lens[line.bytes++] = null;
       } else {
         throw new Error('16-bit offset overflow: ' + term);
       }
