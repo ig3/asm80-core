@@ -454,7 +454,8 @@ export const M6809 = {
         term = null;
       }
       if (
-        term > 65519 &&
+        term > 0xFFEF &&
+        term < 0x10000 &&
         registerOrPCBits(param2) !== 4 &&
         indirectBit === 0
       ) {
@@ -462,6 +463,7 @@ export const M6809 = {
         // where offset is 16-bit two's complement
         // e.g. '0xFFFF,R'
         // TODO: is this legit?
+        // Given this, there are 16bit offsets that are unavailable
         line.lens[line.bytes++] =
           registerBits(param2) | 32 - (65536 - term) & 31;
       } else if (
