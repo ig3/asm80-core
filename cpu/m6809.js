@@ -479,10 +479,9 @@ export const M6809 = {
         line.lens[line.bytes++] = term;
       } else if (term !== null && term < 32768 && term > -32769) {
         // 16-bit offset, indirect or non-indirect
-        line.bytes += 2;
         line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
         line.lens[line.bytes++] = term >> 8;
-        line.lens[line.bytes++] = term;
+        line.lens[line.bytes++] = 0xFF & term;
       } else {
         throw new Error('16-bit offset overflow: ' + term);
       }
