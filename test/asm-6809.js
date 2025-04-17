@@ -206,3 +206,139 @@ t.test('DEC [A,X]', t => {
   t.equal(p.bytes, 2, 'Length');
   t.end();
 });
+
+t.test('LDA ,X+', t => {
+  s = { opcode: 'LDA', params: ['', 'X+'], paramstring: ',X+', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa6, 'Opcode 0');
+  t.equal(p.lens[1], 0x80, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('LDA [,X+]', t => {
+  s = { opcode: 'LDA', params: ['[', 'X+]'], paramstring: '[,X+]', addr: '0x100', lens: [], bytes: 0 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Cannot use postincrement with indirect addressing', 'Error message');
+  }
+  t.end();
+});
+
+t.test('LDA ,X++', t => {
+  s = { opcode: 'LDA', params: ['', 'X++'], paramstring: ',X++', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa6, 'Opcode 0');
+  t.equal(p.lens[1], 0x81, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('LDA ,-X', t => {
+  s = { opcode: 'LDA', params: ['', '-X'], paramstring: ',-X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa6, 'Opcode 0');
+  t.equal(p.lens[1], 0x82, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('LDA [,-X]', t => {
+  s = { opcode: 'LDA', params: ['[', '-X]'], paramstring: '[,-X]', addr: '0x100', lens: [], bytes: 0 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Cannot use predecrement with indirect addressing', 'Error message');
+  }
+  t.end();
+});
+
+t.test('LDA ,--X', t => {
+  s = { opcode: 'LDA', params: ['', '--X'], paramstring: ',--X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa6, 'Opcode 0');
+  t.equal(p.lens[1], 0x83, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('LDA ,X', t => {
+  s = { opcode: 'LDA', params: ['', 'X'], paramstring: ',X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa6, 'Opcode 0');
+  t.equal(p.lens[1], 0x84, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('LDA 2,PC', t => {
+  s = { opcode: 'LDA', params: ['2', 'PC'], paramstring: '2,PC', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa6, 'Opcode 0');
+  t.equal(p.lens[1], 0x8C, 'Opcode 1');
+  t.equal(p.lens[2], 0x02, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  t.end();
+});
+
+t.test('LDA 2,W', t => {
+  s = { opcode: 'LDA', params: ['2', 'W'], paramstring: '2,W', addr: '0x100', lens: [], bytes: 0 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Register name not recognized: W', 'Error message');
+  }
+  t.end();
+});
+
+t.test('CMPD 2,X', t => {
+  s = { opcode: 'CMPD', params: ['2', 'X'], paramstring: '2,X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x10, 'Opcode 0');
+  t.equal(p.lens[1], 0xA3, 'Opcode 1');
+  t.equal(p.lens[2], 0x02, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  t.end();
+});
+
+t.test('BEQ 2,X', t => {
+  s = { opcode: 'BEQ', params: ['2', 'X'], paramstring: '2,X', addr: '0x100', lens: [], bytes: 0, numline: 10 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Bad addressing mode at line 10', 'Error message');
+  }
+  t.end();
+});
+
+t.test('CMPD [$2000]', t => {
+  s = { opcode: 'CMPD', params: ['[$2000]'], paramstring: '[$2000]', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x10, 'Opcode 0');
+  t.equal(p.lens[1], 0xA3, 'Opcode 1');
+  t.equal(p.lens[2], 0x9f, 'Opcode 2');
+  t.equal(typeof (p.lens[3]), 'function', 'Opcode 3');
+  t.equal(p.lens[4], null, 'Opcode 4');
+  t.equal(p.bytes, 5, 'Length');
+  const result = p.lens[3](vars);
+  t.equal(result, 0x2000, 'formula result');
+  t.end();
+});
+
+t.test('CMPA [$2000]', t => {
+  s = { opcode: 'CMPA', params: ['[$2000]'], paramstring: '[$2000]', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0xa1, 'Opcode 0');
+  t.equal(p.lens[1], 0x9f, 'Opcode 1');
+  t.equal(typeof (p.lens[2]), 'function', 'Opcode 2');
+  t.equal(p.lens[3], null, 'Opcode 3');
+  t.equal(p.bytes, 4, 'Length');
+  const result = p.lens[2](vars);
+  t.equal(result, 0x2000, 'formula result');
+  t.end();
+});
