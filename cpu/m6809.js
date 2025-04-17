@@ -1,7 +1,7 @@
 export const M6809 = {
   endian: true,
-  cpu: "m6809",
-  ext: "a09",
+  cpu: 'm6809',
+  ext: 'a09',
   set: {
     // [Inherent, Direct, Indexed, Extended, Immediate-I8, Immediate-M8, Immediate-M16, Relative]
     NEG: [-1, 0, 96, 112, -1, -1, -1, -1],
@@ -138,171 +138,356 @@ export const M6809 = {
     ORCC: [-1, -1, -1, -1, -1, 26, -1, -1],
     ANDCC: [-1, -1, -1, -1, -1, 28, -1, -1]
   },
-  parseOpcode: function(line,vars,Parser) {
-    line._dp || (line._dp = 0);
-    let term, param1, param2, origParam1, len;
+  parseOpcode: function (line, vars, Parser) {
     const opcodes = M6809.set[line.opcode];
-    if (line.lens = [], "EXG" == line.opcode && (line.lens[0] = 30), "TFR" == line.opcode && (line.lens[0] = 31), "EXG" == line.opcode || "TFR" == line.opcode) {
-      if (line.bytes = 2, 2 != line.params.length) throw line.opcode + " needs exactly 2 registers  at line " + line.numline;
-      const getRegisterIndex = function(e) {
-        var registerIndex = ["D", "X", "Y", "U", "S", "PC", "", "", "A", "B", "CC", "DP"].indexOf(e.toUpperCase());
-        if (registerIndex < 0) throw "Not recognized register name";
-        return registerIndex
+
+    let term, param1, param2;
+
+    if (!line._dp) line._dp = 0;
+    line.lens = [];
+
+    if (line.opcode === 'EXG') (line.lens[0] = 30);
+    if (line.opcode === 'TFR') (line.lens[0] = 31);
+    if (line.opcode === 'EXG' || line.opcode === 'TFR') {
+      line.bytes = 2;
+      if (line.params.length !== 2) {
+        throw new Error(
+          line.opcode + ' needs exactly 2 registers at line ' + line.numline
+        );
+      }
+      const getRegisterIndex = function (e) {
+        const registerIndex = (
+          ['D', 'X', 'Y', 'U', 'S', 'PC', '', '', 'A', 'B', 'CC', 'DP']
+          .indexOf(e.toUpperCase())
+        );
+        if (registerIndex < 0) throw new Error('Not recognized register name');
+        return registerIndex;
       };
-      return line.lens[1] = (getRegisterIndex(line.params[0]) << 4) + getRegisterIndex(line.params[1]), line
+      line.lens[1] =
+        (getRegisterIndex(line.params[0]) << 4) +
+        getRegisterIndex(line.params[1]);
+      return line;
     }
-    const getPshPulRegisterIndex = function(e) {
-      if ("D" == e.toUpperCase()) return 6;
-      var registerIndex = ["CC", "A", "B", "DP", "X", "Y", "U", "PC"].indexOf(e.toUpperCase());
-      if (registerIndex < 0) throw "Not recognized register name";
-      return 1 << registerIndex
+    const getPshPulRegisterIndex = function (e) {
+      if (e.toUpperCase() === 'D') return 6;
+      const registerIndex =
+        ['CC', 'A', 'B', 'DP', 'X', 'Y', 'U', 'PC'].indexOf(e.toUpperCase());
+      if (registerIndex < 0) throw new Error('Not recognized register name');
+      return 1 << registerIndex;
     };
-    if ("PSHS" == line.opcode) {
-      for (line.lens[0] = 52, line.bytes = 2, line.lens[1] = 0, len = 0; len < line.params.length; len++) line.lens[1] |= getPshPulRegisterIndex(line.params[len]);
-      return line
+    if (line.opcode === 'PSHS') {
+      line.bytes = 2;
+      line.lens[0] = 52;
+      line.lens[1] = 0;
+      for (let i = 0; i < line.params.length; i++) {
+        line.lens[1] |= getPshPulRegisterIndex(line.params[i]);
+      }
+      return line;
     }
-    if ("PULS" == line.opcode) {
-      for (line.lens[0] = 53, line.bytes = 2, line.lens[1] = 0, len = 0; len < line.params.length; len++) line.lens[1] |= getPshPulRegisterIndex(line.params[len]);
-      return line
+    if (line.opcode === 'PULS') {
+      line.bytes = 2;
+      line.lens[0] = 53;
+      line.lens[1] = 0;
+      for (let i = 0; i < line.params.length; i++) {
+        line.lens[1] |= getPshPulRegisterIndex(line.params[i]);
+      }
+      return line;
     }
-    const getPshuPuluRegisterIndex = function(e) {
-      if ("D" == e.toUpperCase()) return 6;
-      var registerIndex = ["CC", "A", "B", "DP", "X", "Y", "S", "PC"].indexOf(e.toUpperCase());
-      if (registerIndex < 0) throw "Not recognized register name";
-      return 1 << registerIndex
+    const getPshuPuluRegisterIndex = function (e) {
+      if (e.toUpperCase() === 'D') return 6;
+      const registerIndex =
+        ['CC', 'A', 'B', 'DP', 'X', 'Y', 'S', 'PC'].indexOf(e.toUpperCase());
+      if (registerIndex < 0) throw new Error('Not recognized register name');
+      return 1 << registerIndex;
     };
-    if ("PSHU" == line.opcode) {
-      for (line.lens[0] = 54, line.bytes = 2, line.lens[1] = 0, len = 0; len < line.params.length; len++) line.lens[1] |= getPshuPuluRegisterIndex(line.params[len]);
-      return line
+    if (line.opcode === 'PSHU') {
+      line.bytes = 2;
+      line.lens[0] = 54;
+      line.lens[1] = 0;
+      for (let i = 0; i < line.params.length; i++) {
+        line.lens[1] |= getPshuPuluRegisterIndex(line.params[i]);
+      }
+      return line;
     }
-    if ("PULU" == line.opcode) {
-      for (line.lens[0] = 55, line.bytes = 2, line.lens[1] = 0, len = 0; len < line.params.length; len++) line.lens[1] |= getPshuPuluRegisterIndex(line.params[len]);
-      return line
+    if (line.opcode === 'PULU') {
+      line.bytes = 2;
+      line.lens[0] = 55;
+      line.lens[1] = 0;
+      for (let i = 0; i < line.params.length; i++) {
+        line.lens[1] |= getPshuPuluRegisterIndex(line.params[i]);
+      }
+      return line;
     }
     if (opcodes) {
       // Inherhent address mode
-      if (opcodes[0] >= 0) return opcodes[0] > 255 ? (line.lens = [opcodes[0] >> 8, 255 & opcodes[0]], line.bytes = 2, line) : (line.lens = [opcodes[0]], line.bytes = 1, line);
-      // 1 parameter, not starting with '['
-      if (1 == line.params.length && "[" !== line.params[0][0]) {
-        let opcodesIndex = 0;
-        let stripPrefix = false;
-        if (line.bytes = 0, "#" == (param1 = line.params[0])[0] ? (stripPrefix = true, opcodesIndex = 5, opcodes[5] < 0 && opcodes[6] >= 0 && (opcodesIndex = 6)) : "<" == param1[0] ? (stripPrefix = true, opcodesIndex = 1) : ">" == param1[0] ? (stripPrefix = true, opcodesIndex = 3) : (opcodes[1] >= 0 && (opcodesIndex = 1), opcodes[3] >= 0 && (opcodesIndex = 3), opcodes[4] >= 0 && (opcodesIndex = 4), opcodes[7] >= 0 && (opcodesIndex = 7), function(e, r, vars) {
-            if (vars._dp < 0 || vars._dp > 255) return !1;
+      if (opcodes[0] >= 0) {
+        if (opcodes[0] > 255) {
+          line.lens = [opcodes[0] >> 8, 255 & opcodes[0]];
+          line.bytes = 2;
+        } else {
+          line.lens = [opcodes[0]];
+          line.bytes = 1;
+        }
+        return line;
+      }
+
+      // 1 parameter, not indirect
+      if (
+        line.params.length === 1 && // Single parameter
+        line.params[0][0] !== '['   // Not indirect
+      ) {
+        line.bytes = 0;
+        let stripPrefix = 0;
+        let opcodesIndex = 0; // Inherent
+        param1 = line.params[0];
+        if (param1[0] === '#') {
+          stripPrefix = 1;
+          opcodesIndex = 5;
+          if (opcodes[5] < 0 && opcodes[6] >= 0) opcodesIndex = 6;
+        } else if (param1[0] === '<') {
+          stripPrefix = 1;
+          opcodesIndex = 1;
+        } else if (param1[0] === '>') {
+          stripPrefix = 1;
+          opcodesIndex = 3;
+        } else {
+          if (opcodes[1] >= 0) opcodesIndex = 1; // Direct
+          if (opcodes[3] >= 0) opcodesIndex = 3; // Extended
+          if (opcodes[4] >= 0) opcodesIndex = 4; // Immediate-I8
+          if (opcodes[7] >= 0) opcodesIndex = 7; // Relative
+          const result = (function (e, r, vars) {
+            if (vars._dp < 0 || vars._dp > 255) return false;
             try {
-              if (null !== (term = Parser.evaluate(e, r)) && void 0 !== term && term >> 8 === vars._dp) return !0
+              term = Parser.evaluate(e, r);
+              if (
+                term !== null &&
+                term !== undefined &&
+                term >> 8 === vars._dp
+              ) return true;
             } catch (e) {
-              return !1
+              return false;
             }
-            return !1
-          }(param1, vars, line) && opcodes[1] >= 0 && (opcodesIndex = 1)), -1 == opcodes[opcodesIndex]) throw "Bad addressing mode at line " + line.numline;
-        let opcode = opcodes[opcodesIndex];
+            return false;
+          })(param1, vars, line);
+          if (result && opcodes[1] >= 0) opcodesIndex = 1;
+        }
+
+        if (opcodes[opcodesIndex] === -1) {
+          throw new Error('Bad addressing mode at line ' + line.numline);
+        }
 
         let evalFunction = null;
-
-        if (4 != opcodesIndex && 7 != opcodesIndex && (evalFunction = stripPrefix ? function(e) {
-            return Parser.evaluate(param1.substr(1), e)
-          } : function(e) {
-            return Parser.evaluate(param1, e)
-          }), 1 === opcodesIndex && 0 != line._dp) {
-          var A = 256 * line._dp;
-          evalFunction = stripPrefix ? function(e) {
-            return Parser.evaluate(param1.substr(1), e) - A
-          } : function(e) {
-            return Parser.evaluate(param1, e) - A
+        if (opcodesIndex === 4) {
+          evalFunction = function (e) {
+            let term = Parser.evaluate(param1, e) - e._PC - 2;
+            if (
+              term > 127 ||
+              term < -128
+            ) throw new Error('Target out of range');
+            if (term < 0) term = 256 + term;
+            return term;
+          };
+        } else if (opcodesIndex === 7) {
+          evalFunction = function (e) {
+            let term = Parser.evaluate(param1, e) - e._PC - line.bytes;
+            if (term < 0) term = 65536 + term;
+            return term;
+          };
+        } else {
+          if (opcodesIndex === 1 && line._dp !== 0) {
+            const A = 256 * line._dp;
+            evalFunction = function (e) {
+              return Parser.evaluate(param1.substr(stripPrefix), e) - A;
+            };
+          } else {
+            evalFunction = function (e) {
+              return Parser.evaluate(param1.substr(stripPrefix), e);
+            };
           }
         }
-        return line.bytes += opcode > 255 ? 2 : 1, 4 == opcodesIndex && (evalFunction = function(e) {
-          var term = Parser.evaluate(param1, e) - e._PC - 2;
-          if (term > 127) throw "Target out of range";
-          if (term < -128) throw "Target out of range";
-          return term < 0 && (term = 256 + term), term
-        }), 7 == opcodesIndex && (evalFunction = function(e) {
-          var n = Parser.evaluate(param1, e) - e._PC - line.bytes;
-          return n < 0 && (n = 65536 + n), n
-        }), line.lens = opcode > 255 ? [opcode >> 8, 255 & opcode, evalFunction] : [opcode, evalFunction], 1 == opcodesIndex && line.bytes++, 5 == opcodesIndex && line.bytes++, 4 == opcodesIndex && line.bytes++, 3 == opcodesIndex && (line.bytes += 2, line.lens[line.bytes - 1] = null), 6 == opcodesIndex && (line.bytes += 2, line.lens[line.bytes - 1] = null), 7 == opcodesIndex && (line.bytes += 2, line.lens[line.bytes - 1] = null), line
+
+        const opcode = opcodes[opcodesIndex];
+        if (opcode > 255) {
+          line.lens = [opcode >> 8, 255 & opcode, evalFunction];
+        } else {
+          line.lens = [opcode, evalFunction];
+        }
+        line.bytes += (opcode > 255 ? 2 : 1);
+        if (opcodesIndex === 1) {
+          line.bytes++;
+        } else if (opcodesIndex === 3) {
+          line.bytes += 2;
+          line.lens[line.bytes - 1] = null;
+        } else if (opcodesIndex === 4) {
+          line.bytes++;
+        } else if (opcodesIndex === 5) {
+          line.bytes++;
+        } else if (opcodesIndex === 6) {
+          line.bytes += 2;
+          line.lens[line.bytes - 1] = null;
+        } else if (opcodesIndex === 7) {
+          line.bytes += 2;
+          line.lens[line.bytes - 1] = null;
+        }
+        return line;
       }
-      var c = 1;
+
+      line.bytes = 0;
       // 1 parameter starting with '['
-      if (line.bytes = 2, 1 == line.params.length && "[" === line.params[0][0]) return opcodes[2] > 256 ? (line.lens[0] = opcodes[2] >> 8, line.lens[1] = 255 & opcodes[2], c = 2, line.bytes++) : line.lens[0] = opcodes[2], param1 = line.params[0], line.lens[c] = 159, line.lens[c + 1] = function(e) {
-        return Parser.evaluate(param1.substr(1, param1.length - 2), e)
-      }, line.lens[c + 2] = null, line.bytes += 2, line;
-      if (opcodes[2] <= 0 || 2 !== line.params.length) throw "Bad addressing mode at line " + line.numline;
-      opcodes[2] > 256 ? (line.lens[0] = opcodes[2] >> 8, line.lens[1] = 255 & opcodes[2], c = 2, line.bytes++) : line.lens[0] = opcodes[2];
+      if (line.params.length === 1 && line.params[0][0] === '[') {
+        if (opcodes[2] > 256) {
+          // CMPD, CMPY, LDY, STY, LDS, STS, CMPS, CMPU
+          line.lens[line.bytes++] = opcodes[2] >> 8;
+          line.lens[line.bytes++] = 255 & opcodes[2];
+        } else {
+          line.lens[line.bytes++] = opcodes[2];
+        }
+        line.lens[line.bytes++] = 159;
+        param1 = line.params[0];
+        line.lens[line.bytes++] = function (e) {
+          return Parser.evaluate(param1.substr(1, param1.length - 2), e);
+        };
+        line.lens[line.bytes++] = null;
+        return line;
+      }
+
+      if (opcodes[2] <= 0 || line.params.length !== 2) {
+        throw new Error('Bad addressing mode at line ' + line.numline);
+      }
+
+      // Indexed addressing
+      if (opcodes[2] > 256) {
+        line.lens[line.bytes++] = opcodes[2] >> 8;
+        line.lens[line.bytes++] = 255 & opcodes[2];
+      } else {
+        line.lens[line.bytes++] = opcodes[2];
+      }
+
       param1 = line.params[0];
       param2 = line.params[1];
-      origParam1 = param1;
-      param2;
-      // d = 0 for non-indirect addressing modes and 16 for indirect addressing modes
-      var d = 0;
-      if ("[" == param1[0] && "]" == param2[param2.length - 1]) { // Indirect addressing
-        d = 16;
+
+      // d = 0 for non-indirect addressing modes
+      // or 16 for indirect addressing modes
+      let indirectBit = 0;
+      // Indirect addressing
+      if (param1[0] === '[' && param2[param2.length - 1] === ']') {
+        indirectBit = 16;
         param1 = param1.substr(1);
         param2 = param2.substr(0, param2.length - 1);
       }
-      var P = function(e) {
-          var registerIndex = ["X", "Y", "U", "S"].indexOf(e.toUpperCase());
-          if (registerIndex < 0) throw "Register name not recognized: " + e;
-          return registerIndex << 5
-        },
-        b = function(e) {
-          var registerIndex = ["X", "Y", "U", "S", "PC"].indexOf(e.toUpperCase());
-          if (4 == registerIndex) return 4;
-          if (registerIndex < 0) throw "Register name not recognized: " + e;
-          return registerIndex << 5
-        };
-      if ("" === param1) {
-        if ("-" == param2[0])
-          if ("-" == param2[1]) line.lens[c] = 131 | P(param2.substr(2)) | d;
-          else {
-            if (d > 0) throw "Cannot use predecrement with 1";
-            line.lens[c] = 130 | P(param2.substr(1))
+
+      const registerBits = function (R) {
+        const registerIndex = ['X', 'Y', 'U', 'S'].indexOf(R.toUpperCase());
+        if (registerIndex < 0) {
+          throw new Error(
+            'Register name not recognized: ' + R
+          );
+        }
+        return registerIndex << 5;
+      };
+
+      const registerOrPCBits = function (R) {
+        if (
+          R.toUpperCase() === 'PC' ||
+          R.toUpperCase() === 'PCR'
+        ) {
+          return 4;
+        }
+        return registerBits(R);
+      };
+
+      // ',R', '[,R]', ',R+', ',R++', '[,R++], ',-R', ',--R', '[,--R]'
+      if (param1 === '') { // no offset: ',R', '[,R]', ',R+', '[,R+]', etc.
+        if (param2[0] === '-') {
+          if (param2[1] === '-') {
+            // predecrement by 2
+            line.lens[line.bytes++] = 131 | registerBits(param2.substr(2)) | indirectBit;
+          } else {
+            // predecrement by 1
+            if (indirectBit > 0) {
+              throw new Error(
+                'Cannot use predecrement with indirect addressing'
+              );
+            }
+            line.lens[line.bytes++] = 130 | registerBits(param2.substr(1));
           }
-        else if ("+" == param2[1])
-          if ("+" == param2[2]) line.lens[c] = 129 | P(param2.substr(0, 1)) | d;
-          else {
-            if (d > 0) throw "Cannot use postincrement with 1";
-            line.lens[c] = 128 | P(param2.substr(0, 1))
+        } else if (param2[1] === '+') {
+          if (param2[2] === '+') {
+            line.lens[line.bytes++] = 129 | registerBits(param2.substr(0, 1)) | indirectBit;
+          } else {
+            if (indirectBit > 0) {
+              throw new Error(
+                'Cannot use postincrement with indirect addressing'
+              );
+            }
+            line.lens[line.bytes++] = 128 | registerBits(param2.substr(0, 1));
           }
-        else line.lens[c] = 132 | P(param2) | d;
-        return s
+        } else {
+          line.lens[line.bytes++] = 132 | registerBits(param2) | indirectBit;
+        }
+        return line;
       }
-      if ("A" === param1.toUpperCase()) return line.lens[c] = 134 | P(param2) | d, line;
-      if ("B" === param1.toUpperCase()) return line.lens[c] = 133 | P(param2) | d, line;
-      if ("D" === param1.toUpperCase()) return line.lens[c] = 139 | P(param2) | d, line;
-      // Variables may not be defined in the first pass
+
+      // 'A,R' or '[A,R]'
+      if (param1.toUpperCase() === 'A') {
+        line.lens[line.bytes++] = 134 | registerBits(param2) | indirectBit;
+        return line;
+      }
+      // 'B,R' or '[B,R]'
+      if (param1.toUpperCase() === 'B') {
+        line.lens[line.bytes++] = 133 | registerBits(param2) | indirectBit;
+        return line;
+      }
+      // 'D,R' or '[D,R]'
+      if (param1.toUpperCase() === 'D') {
+        line.lens[line.bytes++] = 139 | registerBits(param2) | indirectBit;
+        return line;
+      }
+
+      // 'n,R' or '[n,R]' where n may be an expression
+      // n may be 5bit, 8bit or 16bit, two's complement
       try {
+        // Variables may not be defined in the first pass
+        // In which chase this will throw.
         term = Parser.evaluate(param1, vars);
       } catch (e) {
         term = null;
       }
-      if (term > 65519 && 4 != b(param2) && d === 0) {
-        // 5-bit offset, non-indirect
+      if (
+        term > 65519 &&
+        registerOrPCBits(param2) !== 4 &&
+        indirectBit === 0
+      ) {
+        // 5-bit offset, non-indirect only
         // where offset is 16-bit two's complement
         // e.g. '0xFFFF,R'
-        line.lens[c] = P(param2) | 32 - (65536 - term) & 31;
-        return line;
-      } else if (term < 16 && term > -17 && 4 != b(param2) && d === 0) {
-        // 5-bit offset, non-indirect
-        line.lens[c] = P(param2) | 31 & term;
-        return line;
+        // TODO: is this legit?
+        line.lens[line.bytes++] =
+          registerBits(param2) | 32 - (65536 - term) & 31;
+      } else if (
+        term < 16 &&
+        term > -17 &&
+        registerOrPCBits(param2) !== 4 &&
+        indirectBit === 0
+      ) {
+        // 5-bit offset, non-indirect only
+        line.lens[line.bytes++] = registerBits(param2) | 31 & term;
       } else if (term !== null && term < 128 && term > -129) {
         // 8-bit offset, indirect or non-indirect
         if (term < 0) term = 256 + term;
-        line.bytes += 1;
-        line.lens[c] = b(param2) | d | 136;
-        line.lens[c+1] = term;
-        return line;
+        line.lens[line.bytes++] = registerBits(param2) | indirectBit | 136;
+        line.lens[line.bytes++] = term;
       } else if (term !== null && term < 32768 && term > -32769) {
         // 16-bit offset, indirect or non-indirect
         line.bytes += 2;
-        line.lens[c] = b(param2) | d | 137;
-        line.lens[c+1] = term >> 8;
-        line.lens[c+2] = term;
-        return line;
+        line.lens[line.bytes++] = registerBits(param2) | indirectBit | 137;
+        line.lens[line.bytes++] = term >> 8;
+        line.lens[line.bytes++] = term;
       } else {
-        throw('16-bit offset overflow: ' + term);
+        throw new Error('16-bit offset overflow: ' + term);
       }
+      return line;
     }
-    return null
+    return null;
   },
 };
