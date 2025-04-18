@@ -1,28 +1,16 @@
 export const norm = (xs) => xs.map((lx) => {
-  let l = lx.line;
-  l = l.replace('&lt;', '<');
-  l = l.replace('&gt;', '>');
-  while (l[l.length - 1] === ' ') {
-    l = l.substr(0, l.length - 1);
-  }
-  lx.line = l;
-  if (l[0] !== ' ') {
-    return lx;
-  }
-  while (l[0] === ' ') {
-    l = l.substr(1);
-  }
-  lx.line = ' ' + l;
+  lx.line =
+    lx.line
+    .replace(/^ +/, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/ +$/, '');
   return lx;
 });
 
 // remove empty lines
 export const nonempty = (xs) => xs.filter((lx) => {
-  let l = lx.line;
-  while (l[0] === ' ') {
-    l = l.substr(1);
-  }
-  return !!l.length;
+  return !/^ *$/.test(lx.line);
 });
 
 // convert source text to an array of line objects
@@ -45,6 +33,6 @@ const toHexN = (n, d) => {
 };
 
 export const toHex2 = (n) => toHexN(n & 0xff, 2);
-export const toHex4 = (n) => toHexN(n, 4);
-export const toHex6 = (n) => toHexN(n, 6);
-export const toHex8 = (n) => toHexN(n, 8);
+export const toHex4 = (n) => toHexN(n & 0xffff, 4);
+export const toHex6 = (n) => toHexN(n & 0xffffff, 6);
+export const toHex8 = (n) => toHexN(BigInt(n) & BigInt(0xffffffff), 8);
