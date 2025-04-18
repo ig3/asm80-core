@@ -358,7 +358,6 @@ t.test('CMPA >$2000', t => {
 t.test('CMPD >$2000', t => {
   s = { opcode: 'CMPD', params: ['>$2000'], paramstring: '>$2000', addr: '0x100', lens: [], bytes: 0 };
   p = M6809.parseOpcode(s, vars, Parser);
-  console.log('p: ', p);
   t.equal(p.lens[0], 0x10, 'Opcode 0');
   t.equal(p.lens[1], 0xb3, 'Opcode 1');
   t.equal(typeof (p.lens[2]), 'function', 'Opcode 2');
@@ -383,12 +382,122 @@ t.test('DEC <addr', t => {
 t.test('LBRA ', t => {
   s = { opcode: 'LBRA', params: ['$1123'], paramstring: '$1123', addr: '0x100', lens: [], bytes: 0, _dp: 0x70 };
   p = M6809.parseOpcode(s, vars, Parser);
-  console.log('p: ', p);
   t.equal(p.lens[0], 0x16, 'Opcode 0');
   t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
   t.equal(p.lens[2], null, 'Opcode 2');
   t.equal(p.bytes, 3, 'Length');
   const result = p.lens[1](vars);
   t.equal(result, 0x1020, 'formula result');
+  t.end();
+});
+
+t.test('BRA ', t => {
+  s = { opcode: 'BRA', params: ['$111'], paramstring: '$111', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x20, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x0f, 'formula result');
+  t.end();
+});
+
+t.test('LEAX ', t => {
+  s = { opcode: 'LEAX', params: ['$111'], paramstring: '$111', addr: '0x100', lens: [], bytes: 0, numline: 10 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Bad addressing mode at line 10', 'Error message');
+  }
+  t.end();
+});
+
+t.test('LBRA ', t => {
+  s = { opcode: 'LBRA', params: ['XXX'], paramstring: 'XXX', addr: '0x100', lens: [], bytes: 0, _dp: 0x70 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x16, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.lens[2], null, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  const result = p.lens[1]({ XXX: 0x1234, _PC: 0x100 });
+  t.equal(result, 0x1131, 'formula result');
+  t.end();
+});
+
+t.test('SUBA ', t => {
+  s = { opcode: 'SUBA', params: ['#$1234'], paramstring: '#$1234', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x80, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x1234, 'formula result');
+  t.end();
+});
+
+t.test('SWI2', t => {
+  s = { opcode: 'SWI2', params: [''], paramstring: '', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x10, 'Opcode 0');
+  t.equal(p.lens[1], 0x3f, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('PULU', t => {
+  s = { opcode: 'PULU', params: ['A', 'B', 'X'], paramstring: 'A,B,X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x37, 'Opcode 0');
+  t.equal(p.lens[1], 0x16, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('PSHU', t => {
+  s = { opcode: 'PSHU', params: ['A', 'B', 'X'], paramstring: 'A,B,X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x36, 'Opcode 0');
+  t.equal(p.lens[1], 0x16, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('PULS', t => {
+  s = { opcode: 'PULS', params: ['A', 'B', 'X'], paramstring: 'A,B,X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x35, 'Opcode 0');
+  t.equal(p.lens[1], 0x16, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('PSHS', t => {
+  s = { opcode: 'PSHS', params: ['A', 'B', 'X'], paramstring: 'A,B,X', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x34, 'Opcode 0');
+  t.equal(p.lens[1], 0x16, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('EXG', t => {
+  s = { opcode: 'EXG', params: ['A', 'B', 'X'], paramstring: 'A,B,X', addr: '0x100', lens: [], bytes: 0, numline: 10 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'EXG needs exactly 2 registers at line 10', 'Error message');
+  }
+  t.end();
+});
+
+t.test('EXG', t => {
+  s = { opcode: 'EXG', params: ['A', 'B'], paramstring: 'A,B', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  console.log('p: ', p);
+  t.equal(p.lens[0], 0x1e, 'Opcode 0');
+  t.equal(p.lens[1], 0x89, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
   t.end();
 });
