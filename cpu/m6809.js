@@ -268,7 +268,7 @@ export const M6809 = {
           const result = (function (e, r, vars) {
             if (vars._dp < 0 || vars._dp > 255) return false;
             try {
-              term = Parser.evaluate(e, r);
+              const term = Parser.evaluate(e, r);
               if (
                 term !== null &&
                 term !== undefined &&
@@ -289,18 +289,18 @@ export const M6809 = {
         let evalFunction = null;
         if (opcodesIndex === 4) {
           evalFunction = function (e) {
-            let term = Parser.evaluate(param1, e) - e._PC - 2;
+            const term = Parser.evaluate(param1, e) - e._PC - 2;
             if (
               term > 127 ||
               term < -128
             ) throw new Error('Target out of range');
-            if (term < 0) term = 256 + term;
+            if (term < 0) return 256 + term;
             return term;
           };
         } else if (opcodesIndex === 7) {
           evalFunction = function (e) {
-            let term = Parser.evaluate(param1, e) - e._PC - line.bytes;
-            if (term < 0) term = 65536 + term;
+            const term = Parser.evaluate(param1, e) - e._PC - line.bytes;
+            if (term < 0) return 65536 + term;
             return term;
           };
         } else {
