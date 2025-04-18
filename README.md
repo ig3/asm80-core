@@ -60,8 +60,8 @@ difficult to investigate and fix bugs.
 So I created this fork to add support for the M6809 processor and to add a
 command line interface. In passing, I have somewhat de-minified the parts
 of the code relevant to the bug. In particular, the parseOpcode function in
-cpu/m6809.js. It's still a mess and not well tested, but better than it
-was.
+cpu/m6809.js. There is 100% test coverage of the m6809 module, according to
+c8, but this doesn't mean the code and data are all correct. 
 
 I did this to compile and play with some code that I wrote for M6809 long
 ago. I don't have much ongoing need for it, so it probably won't get much
