@@ -255,6 +255,10 @@ export const M6809 = {
           if (opcodes[3] >= 0) opcodesIndex = 3; // Extended
           if (opcodes[4] >= 0) opcodesIndex = 4; // Immediate-I8
           if (opcodes[7] >= 0) opcodesIndex = 7; // Relative
+          // Determine if Direct Page addressing should be used
+          // If _dp is set and the given address is on that page,
+          // and the opcode supports direct addressing mode, then
+          // use direct page addressing.
           const result = (function (e, r, vars) {
             if (vars._dp < 0 || vars._dp > 255) return false;
             try {
@@ -296,6 +300,12 @@ export const M6809 = {
         } else {
           if (opcodesIndex === 1 && line._dp !== 0) {
             const A = 256 * line._dp;
+            // TODO: check if this evaluation is correct
+            // How is DP properly handled???
+            // If _dp has a value (e.g. $70, then addresses in the range
+            // $7000 through $70FF will be accessed by direct addressing
+            // with an 8bit address rather than 16bit. This assumes that
+            // the DP register has been set accordingly.
             evalFunction = function (e) {
               return Parser.evaluate(param1.substr(stripPrefix), e) - A;
             };
