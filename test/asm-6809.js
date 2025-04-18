@@ -349,6 +349,7 @@ t.test('CMPA >$2000', t => {
   t.equal(p.lens[0], 0xB1, 'Opcode 0');
   t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
   t.equal(p.lens[2], null, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
   const result = p.lens[1](vars);
   t.equal(result, 0x2000, 'formula result');
   t.end();
@@ -362,7 +363,32 @@ t.test('CMPD >$2000', t => {
   t.equal(p.lens[1], 0xb3, 'Opcode 1');
   t.equal(typeof (p.lens[2]), 'function', 'Opcode 2');
   t.equal(p.lens[3], null, 'Opcode 2');
+  t.equal(p.bytes, 4, 'Length');
   const result = p.lens[2](vars);
   t.equal(result, 0x2000, 'formula result');
+  t.end();
+});
+
+t.test('DEC <addr', t => {
+  s = { opcode: 'DEC', params: ['<$7023'], paramstring: '<$7023', addr: '0x100', lens: [], bytes: 0, _dp: 0x70 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x0a, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x23, 'formula result');
+  t.end();
+});
+
+t.test('LBRA ', t => {
+  s = { opcode: 'LBRA', params: ['$1123'], paramstring: '$1123', addr: '0x100', lens: [], bytes: 0, _dp: 0x70 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  console.log('p: ', p);
+  t.equal(p.lens[0], 0x16, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.lens[2], null, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x1020, 'formula result');
   t.end();
 });
