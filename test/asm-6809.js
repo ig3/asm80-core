@@ -495,9 +495,102 @@ t.test('EXG', t => {
 t.test('EXG', t => {
   s = { opcode: 'EXG', params: ['A', 'B'], paramstring: 'A,B', addr: '0x100', lens: [], bytes: 0 };
   p = M6809.parseOpcode(s, vars, Parser);
-  console.log('p: ', p);
   t.equal(p.lens[0], 0x1e, 'Opcode 0');
   t.equal(p.lens[1], 0x89, 'Opcode 1');
   t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('DEC n,X - 8bit negative', t => {
+  s = { opcode: 'DEC', params: ['[-10', 'X]'], paramstring: '[-10,X]', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x6a, 'Opcode 0');
+  t.equal(p.lens[1], 0x98, 'Opcode 1');
+  t.equal(p.lens[2], 0xf6, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  t.end();
+});
+
+t.test('LBRA ', t => {
+  s = { opcode: 'LBRA', params: ['-10'], paramstring: '-10', addr: '0x100', lens: [], bytes: 0, _dp: 0x70 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x16, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.lens[2], null, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0xfef3, 'formula result');
+  t.end();
+});
+
+t.test('BRA I8 - negative', t => {
+  s = { opcode: 'BRA', params: ['$8f'], paramstring: '$8f', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x20, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x8d, 'formula result');
+  t.end();
+});
+
+t.test('BRA I8 - negative', t => {
+  s = { opcode: 'BRA', params: ['$7f'], paramstring: '$7f', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x20, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  try {
+    p.lens[1](vars);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Target out of range', 'Error message');
+  }
+  t.end();
+});
+
+t.test('DEC I16', t => {
+  s = { opcode: 'DEC', params: ['$7023'], paramstring: '$7023', addr: '0x100', lens: [], bytes: 0, _dp: -1 };
+  console.log('last');
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x7a, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.lens[2], null, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x7023, 'formula result');
+  t.end();
+});
+
+t.test('SUBD addr', t => {
+  s = { opcode: 'SUBD', params: ['#$7023'], paramstring: '#$7023', addr: '0x100', lens: [], bytes: 0, _dp: -1 };
+  console.log('last');
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x83, 'Opcode 0');
+  t.equal(typeof (p.lens[1]), 'function', 'Opcode 1');
+  t.equal(p.lens[2], null, 'Opcode 2');
+  t.equal(p.bytes, 3, 'Length');
+  const result = p.lens[1](vars);
+  t.equal(result, 0x7023, 'formula result');
+  t.end();
+});
+
+t.test('PSHU D', t => {
+  s = { opcode: 'PSHU', params: ['D'], paramstring: 'D', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x36, 'Opcode 0');
+  t.equal(p.lens[1], 0x06, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('PSHU W', t => {
+  s = { opcode: 'PSHU', params: ['W'], paramstring: 'W', addr: '0x100', lens: [], bytes: 0 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Not recognized register name W', 'Error message');
+  }
   t.end();
 });

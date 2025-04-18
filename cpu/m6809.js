@@ -160,7 +160,9 @@ export const M6809 = {
           ['D', 'X', 'Y', 'U', 'S', 'PC', '', '', 'A', 'B', 'CC', 'DP']
           .indexOf(e.toUpperCase())
         );
-        if (registerIndex < 0) throw new Error('Not recognized register name');
+        if (registerIndex < 0) {
+          throw new Error('Not recognized register name ' + e.toUpperCase());
+        }
         return registerIndex;
       };
       line.lens[1] =
@@ -172,7 +174,9 @@ export const M6809 = {
       if (e.toUpperCase() === 'D') return 6;
       const registerIndex =
         ['CC', 'A', 'B', 'DP', 'X', 'Y', 'U', 'PC'].indexOf(e.toUpperCase());
-      if (registerIndex < 0) throw new Error('Not recognized register name');
+      if (registerIndex < 0) {
+        throw new Error('Not recognized register name ' + e.toUpperCase());
+      }
       return 1 << registerIndex;
     };
     if (line.opcode === 'PSHS') {
@@ -197,7 +201,9 @@ export const M6809 = {
       if (e.toUpperCase() === 'D') return 6;
       const registerIndex =
         ['CC', 'A', 'B', 'DP', 'X', 'Y', 'S', 'PC'].indexOf(e.toUpperCase());
-      if (registerIndex < 0) throw new Error('Not recognized register name');
+      if (registerIndex < 0) {
+        throw new Error('Not recognized register name ' + e.toUpperCase());
+      }
       return 1 << registerIndex;
     };
     if (line.opcode === 'PSHU') {
