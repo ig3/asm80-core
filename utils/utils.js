@@ -25,11 +25,10 @@ export const nonempty = (xs) => xs.filter((lx) => {
   return !!l.length;
 });
 
-// convert lines to internal structure
-
-export const toInternal = (xs) => {
+// convert source text to an array of line objects
+export const toInternal = (src) => {
   let numLine = 1;
-  return xs.map((line) => ({
+  return src.split(/\n/).map((line) => ({
     line: line, // original line
     numline: numLine++, // line number
     addr: null, // address in code

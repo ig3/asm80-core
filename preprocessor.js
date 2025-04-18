@@ -156,7 +156,7 @@ export const prepro = async (V, opts = {}, fullfile) => {
           );
         }
         // console.log(nf);
-        ni = toInternal(nf.split(/\n/));
+        ni = toInternal(nf);
         ni = nonempty(ni);
         ni = norm(ni);
         // console.log(ni)

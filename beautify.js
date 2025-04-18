@@ -16,7 +16,7 @@ const emptymask = (xs) => xs.map((lx) => {
 });
 
 export const beautify = async (s, opts) => {
-  let i = toInternal(s.split(/\n/));
+  let i = toInternal(s);
   i = emptymask(i);
   i = nonempty(i);
   i = norm(i);

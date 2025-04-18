@@ -7,7 +7,7 @@ import { toInternal, nonempty, norm } from './utils/utils.js';
 
 export const parse = async (src, opts) => {
   // split and convert to internal lines
-  let lines = toInternal(src.split(/\n/));
+  let lines = toInternal(src);
   lines = nonempty(lines); // remove empty lines
   lines = norm(lines); // normalize lines
 
