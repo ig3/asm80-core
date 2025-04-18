@@ -594,3 +594,43 @@ t.test('PSHU W', t => {
   }
   t.end();
 });
+
+t.test('PSHS D', t => {
+  s = { opcode: 'PSHS', params: ['D'], paramstring: 'D', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x34, 'Opcode 0');
+  t.equal(p.lens[1], 0x06, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
+
+t.test('PSHS W', t => {
+  s = { opcode: 'PSHS', params: ['W'], paramstring: 'W', addr: '0x100', lens: [], bytes: 0 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Not recognized register name W', 'Error message');
+  }
+  t.end();
+});
+
+t.test('EXG', t => {
+  s = { opcode: 'EXG', params: ['A', 'T'], paramstring: 'A,T', addr: '0x100', lens: [], bytes: 0 };
+  try {
+    p = M6809.parseOpcode(s, vars, Parser);
+    t.fail('should throw');
+  } catch (e) {
+    t.equal(e.message, 'Not recognized register name T', 'Error message');
+  }
+  t.end();
+});
+
+t.test('TFR', t => {
+  s = { opcode: 'TFR', params: ['A', 'B'], paramstring: 'A,B', addr: '0x100', lens: [], bytes: 0 };
+  p = M6809.parseOpcode(s, vars, Parser);
+  t.equal(p.lens[0], 0x1f, 'Opcode 0');
+  t.equal(p.lens[1], 0x89, 'Opcode 1');
+  t.equal(p.bytes, 2, 'Length');
+  t.end();
+});
