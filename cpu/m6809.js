@@ -139,17 +139,14 @@ export const M6809 = {
     ANDCC: [-1, -1, -1, -1, -1, 28, -1, -1]
   },
   parseOpcode: function (line, vars, Parser) {
-    const opcodes = M6809.set[line.opcode];
-
-    let term, param1, param2;
-
     if (!line._dp) line._dp = 0;
     line.lens = [];
 
-    if (line.opcode === 'EXG') (line.lens[0] = 30);
-    if (line.opcode === 'TFR') (line.lens[0] = 31);
+    // EXG and TFR are special case: not in the opcode table
     if (line.opcode === 'EXG' || line.opcode === 'TFR') {
       line.bytes = 2;
+      if (line.opcode === 'EXG') line.lens[0] = 30;
+      if (line.opcode === 'TFR') line.lens[0] = 31;
       if (line.params.length !== 2) {
         throw new Error(
           line.opcode + ' needs exactly 2 registers at line ' + line.numline
@@ -170,60 +167,50 @@ export const M6809 = {
         getRegisterIndex(line.params[1]);
       return line;
     }
-    const getPshPulRegisterIndex = function (e) {
-      if (e.toUpperCase() === 'D') return 6;
-      const registerIndex =
-        ['CC', 'A', 'B', 'DP', 'X', 'Y', 'U', 'PC'].indexOf(e.toUpperCase());
-      if (registerIndex < 0) {
-        throw new Error('Not recognized register name ' + e.toUpperCase());
-      }
-      return 1 << registerIndex;
-    };
-    if (line.opcode === 'PSHS') {
+
+    // PSHS and PULS are special case: not in the opcode table
+    if (line.opcode === 'PSHS' || line.opcode === 'PULS') {
       line.bytes = 2;
-      line.lens[0] = 52;
+      if (line.opcode === 'PSHS') line.lens[0] = 52;
+      if (line.opcode === 'PULS') line.lens[0] = 53;
+      const getPshPulRegisterIndex = function (e) {
+        if (e.toUpperCase() === 'D') return 6;
+        const registerIndex =
+          ['CC', 'A', 'B', 'DP', 'X', 'Y', 'U', 'PC'].indexOf(e.toUpperCase());
+        if (registerIndex < 0) {
+          throw new Error('Not recognized register name ' + e.toUpperCase());
+        }
+        return 1 << registerIndex;
+      };
       line.lens[1] = 0;
       for (let i = 0; i < line.params.length; i++) {
         line.lens[1] |= getPshPulRegisterIndex(line.params[i]);
       }
       return line;
     }
-    if (line.opcode === 'PULS') {
+
+    // PSHU and PULU are special case: not in the opcode table
+    if (line.opcode === 'PSHU' || line.opcode === 'PULU') {
       line.bytes = 2;
-      line.lens[0] = 53;
-      line.lens[1] = 0;
-      for (let i = 0; i < line.params.length; i++) {
-        line.lens[1] |= getPshPulRegisterIndex(line.params[i]);
-      }
-      return line;
-    }
-    const getPshuPuluRegisterIndex = function (e) {
-      if (e.toUpperCase() === 'D') return 6;
-      const registerIndex =
-        ['CC', 'A', 'B', 'DP', 'X', 'Y', 'S', 'PC'].indexOf(e.toUpperCase());
-      if (registerIndex < 0) {
-        throw new Error('Not recognized register name ' + e.toUpperCase());
-      }
-      return 1 << registerIndex;
-    };
-    if (line.opcode === 'PSHU') {
-      line.bytes = 2;
-      line.lens[0] = 54;
+      if (line.opcode === 'PSHU') line.lens[0] = 54;
+      if (line.opcode === 'PULU') line.lens[0] = 55;
+      const getPshuPuluRegisterIndex = function (e) {
+        if (e.toUpperCase() === 'D') return 6;
+        const registerIndex =
+          ['CC', 'A', 'B', 'DP', 'X', 'Y', 'S', 'PC'].indexOf(e.toUpperCase());
+        if (registerIndex < 0) {
+          throw new Error('Not recognized register name ' + e.toUpperCase());
+        }
+        return 1 << registerIndex;
+      };
       line.lens[1] = 0;
       for (let i = 0; i < line.params.length; i++) {
         line.lens[1] |= getPshuPuluRegisterIndex(line.params[i]);
       }
       return line;
     }
-    if (line.opcode === 'PULU') {
-      line.bytes = 2;
-      line.lens[0] = 55;
-      line.lens[1] = 0;
-      for (let i = 0; i < line.params.length; i++) {
-        line.lens[1] |= getPshuPuluRegisterIndex(line.params[i]);
-      }
-      return line;
-    }
+
+    const opcodes = M6809.set[line.opcode];
     if (opcodes) {
       // Inherhent address mode
       if (opcodes[0] >= 0) {
@@ -245,17 +232,17 @@ export const M6809 = {
         line.bytes = 0;
         let stripPrefix = 0;
         let opcodesIndex = 0; // Inherent
-        param1 = line.params[0];
+        const param1 = line.params[0];
         if (param1[0] === '#') {
           stripPrefix = 1;
-          opcodesIndex = 5;
+          opcodesIndex = 5; // Immediate-M8
           if (opcodes[5] < 0 && opcodes[6] >= 0) opcodesIndex = 6;
         } else if (param1[0] === '<') {
           stripPrefix = 1;
-          opcodesIndex = 1;
+          opcodesIndex = 1; // Direct
         } else if (param1[0] === '>') {
           stripPrefix = 1;
-          opcodesIndex = 3;
+          opcodesIndex = 3; // Extended
         } else {
           if (opcodes[1] >= 0) opcodesIndex = 1; // Direct
           if (opcodes[3] >= 0) opcodesIndex = 3; // Extended
@@ -265,14 +252,14 @@ export const M6809 = {
           // If _dp is set and the given address is on that page,
           // and the opcode supports direct addressing mode, then
           // use direct page addressing.
-          const result = (function (e, r, vars) {
-            if (vars._dp < 0 || vars._dp > 255) return false;
+          const result = (function (e, vars, line) {
+            if (line._dp < 0 || line._dp > 255) return false;
             try {
-              const term = Parser.evaluate(e, r);
+              const term = Parser.evaluate(e, vars);
               if (
                 term !== null &&
                 term !== undefined &&
-                term >> 8 === vars._dp
+                term >> 8 === line._dp
               ) return true;
             } catch (e) {
               return false;
@@ -303,23 +290,15 @@ export const M6809 = {
             if (term < 0) return 65536 + term;
             return term;
           };
+        } else if (opcodesIndex === 1 && line._dp !== 0) {
+          const A = 256 * line._dp;
+          evalFunction = function (e) {
+            return Parser.evaluate(param1.substr(stripPrefix), e) - A;
+          };
         } else {
-          if (opcodesIndex === 1 && line._dp !== 0) {
-            const A = 256 * line._dp;
-            // TODO: check if this evaluation is correct
-            // How is DP properly handled???
-            // If _dp has a value (e.g. $70, then addresses in the range
-            // $7000 through $70FF will be accessed by direct addressing
-            // with an 8bit address rather than 16bit. This assumes that
-            // the DP register has been set accordingly.
-            evalFunction = function (e) {
-              return Parser.evaluate(param1.substr(stripPrefix), e) - A;
-            };
-          } else {
-            evalFunction = function (e) {
-              return Parser.evaluate(param1.substr(stripPrefix), e);
-            };
-          }
+          evalFunction = function (e) {
+            return Parser.evaluate(param1.substr(stripPrefix), e);
+          };
         }
 
         const opcode = opcodes[opcodesIndex];
@@ -355,7 +334,7 @@ export const M6809 = {
           line.lens[line.bytes++] = opcodes[2];
         }
         line.lens[line.bytes++] = 159;
-        param1 = line.params[0];
+        const param1 = line.params[0];
         line.lens[line.bytes++] = function (e) {
           return Parser.evaluate(param1.substr(1, param1.length - 2), e);
         };
@@ -375,8 +354,8 @@ export const M6809 = {
         line.lens[line.bytes++] = opcodes[2];
       }
 
-      param1 = line.params[0];
-      param2 = line.params[1];
+      let param1 = line.params[0];
+      let param2 = line.params[1];
 
       // d = 0 for non-indirect addressing modes
       // or 16 for indirect addressing modes
@@ -413,7 +392,8 @@ export const M6809 = {
         if (param2[0] === '-') {
           if (param2[1] === '-') {
             // predecrement by 2
-            line.lens[line.bytes++] = 131 | registerBits(param2.substr(2)) | indirectBit;
+            line.lens[line.bytes++] =
+              131 | registerBits(param2.substr(2)) | indirectBit;
           } else {
             // predecrement by 1
             if (indirectBit > 0) {
@@ -425,7 +405,8 @@ export const M6809 = {
           }
         } else if (param2[1] === '+') {
           if (param2[2] === '+') {
-            line.lens[line.bytes++] = 129 | registerBits(param2.substr(0, 1)) | indirectBit;
+            line.lens[line.bytes++] =
+              129 | registerBits(param2.substr(0, 1)) | indirectBit;
           } else {
             if (indirectBit > 0) {
               throw new Error(
@@ -458,13 +439,14 @@ export const M6809 = {
 
       // 'n,R' or '[n,R]' where n may be an expression
       // n may be 5bit, 8bit or 16bit, two's complement
-      try {
-        // Variables may not be defined in the first pass
-        // In which chase this will throw.
-        term = Parser.evaluate(param1, vars);
-      } catch (e) {
-        term = null;
-      }
+      const term = (() => {
+        try {
+          return Parser.evaluate(param1, vars);
+        } catch (e) {
+          return null;
+        }
+      })();
+
       if (
         term !== null &&
         term > 0xFFEF &&
@@ -490,9 +472,8 @@ export const M6809 = {
         line.lens[line.bytes++] = registerBits(param2) | 31 & term;
       } else if (term !== null && term < 128 && term > -129) {
         // 8-bit offset, indirect or non-indirect
-        if (term < 0) term = 256 + term;
         line.lens[line.bytes++] = registerOrPCBits(param2) | indirectBit | 136;
-        line.lens[line.bytes++] = term;
+        line.lens[line.bytes++] = term + ((term < 0) ? 256 : 0);
       } else if (term !== null && term < 32768 && term > -32769) {
         // 16-bit offset, indirect or non-indirect
         line.lens[line.bytes++] = registerOrPCBits(param2) | indirectBit | 137;
